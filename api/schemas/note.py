@@ -7,12 +7,10 @@ class NoteSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = NoteModel
 
-    #fields = ("id", "username", "role")
     id = ma.auto_field()
-    title = ma.auto_field()
     note = ma.auto_field()
     date = ma.auto_field()
-    user = ma.Nested(UserSchema())
+    author = ma.Nested(UserSchema())
 
 
 note_schema = NoteSchema()
