@@ -1,45 +1,29 @@
 from api import Resource, reqparse, db, auth, abort, g
 from api.models.note import NoteModel
-from api.schemas.note import note_schema, notes_schema
+from api.schemas.note import NoteResponseSchema, NoteRequestSchema
 from flask_apispec.views import MethodResource
 from flask_apispec import marshal_with, doc, use_kwargs
 
 
+@doc(tags=['Notes'])
 class NoteResource(MethodResource):
 
     @auth.login_required
-    def get(self, note_id=None):
+    @marshal_with(NoteResponseSchema)
+    def get(self, note_id):
         author = g.user
-        if note_id is None:
-            notes = NoteModel.query.filter_by(author_id=author.id).all()
-            if not notes:
-                abort(404, error=f"You have no notes yet")
-            return notes_schema.dump(notes), 200
-
         note = NoteModel.query.get(note_id)
         if not note:
             abort(404, error=f"Note with id={note_id} not found")
         if note.author != author:
             abort(403, error=f"Access denied to note with id={note_id}")
 
-        return note_schema.dump(note), 200
+        return note, 200
 
     @auth.login_required
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("note", required=True)
-        note_data = parser.parse_args()
-        author = g.user
-        note = NoteModel(author_id=author.id, **note_data)
-        db.session.add(note)
-        db.session.commit()
-        return note_schema.dump(note)
-
-    @auth.login_required
-    def put(self, note_id):
-        note_parser = reqparse.RequestParser()
-        note_parser.add_argument("note", required=True)
-        note_data = note_parser.parse_args()
+    @use_kwargs(NoteRequestSchema, location=('json'))
+    @marshal_with(NoteResponseSchema)
+    def put(self, note_id, **kwargs):
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -48,11 +32,10 @@ class NoteResource(MethodResource):
         if note.author != author:
             abort(403, error=f"Access denied to note with id={note_id}")
 
-        note.note = note_data["note"]
+        note.note = kwargs["note"]
         try:
-            db.session.add(note)
-            db.session.commit()
-            return note_schema.dump(note), 200
+            note.save()
+            return note, 200
         except:
             abort(404, error=f"An error occurred while changing note")
 
@@ -67,8 +50,43 @@ class NoteResource(MethodResource):
             abort(403, error=f"Access denied to note with id={note_id}")
 
         try:
-            db.session.delete(note)
-            db.session.commit()
+            note.delete()
             return f"Note with id={note_id} deleted", 200
         except:
             abort(404, error=f"An error occurred while changing note")
+
+
+@doc(tags=['NotesList'])
+class NoteListResource(MethodResource):
+
+    @auth.login_required
+    @marshal_with(NoteResponseSchema(many=True))
+    def get(self):
+        author = g.user
+        notes = NoteModel.query.filter_by(author_id=author.id).all()
+        if not notes:
+            abort(404, error=f"You have no notes yet")
+        return notes, 200
+
+    @auth.login_required
+    @use_kwargs(NoteRequestSchema, location=('json'))
+    @marshal_with(NoteResponseSchema)
+    def post(self, **kwargs):
+        author = g.user
+        note = NoteModel(author_id=author.id, **kwargs)
+        note.save()
+        return note, 201
+
+
+
+
+
+
+
+
+
+
+
+
+
+

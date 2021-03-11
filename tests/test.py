@@ -1,6 +1,6 @@
 import json
 from api import db
-from app import app
+from app import app, Config
 from unittest import TestCase
 from api.models.user import UserModel
 from api.models.note import NoteModel
@@ -10,6 +10,9 @@ from base64 import b64encode
 class TestUsers(TestCase):
     def setUp(self):
         self.app = app
+        self.app.config.update({
+            'SQLALCHEMY_DATABASE_URI': Config.TEST_DATABASE_URI
+        })
         self.client = self.app.test_client()
         with self.app.app_context():
             db.create_all()
@@ -77,6 +80,9 @@ class TestUsers(TestCase):
 class TestNotes(TestCase):
     def setUp(self):
         self.app = app
+        self.app.config.update({
+            'SQLALCHEMY_DATABASE_URI': Config.TEST_DATABASE_URI
+        })
         self.client = self.app.test_client()
         with self.app.app_context():
             db.create_all()
