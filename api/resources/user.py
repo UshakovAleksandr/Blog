@@ -1,35 +1,27 @@
 from api import Resource, reqparse, db, abort
 from api.models.user import UserModel
-from api.schemas.user import user_schema, users_schema
+from api.schemas.user import UserRequestSchema, UserResponseSchema, user_schema
+from flask_apispec.views import MethodResource
+from flask_apispec import marshal_with, doc, use_kwargs
 
 
-class UserResource(Resource):
+@doc(description='Api for notes.', tags=['Users'])
+class UserResource(MethodResource):
 
-    def get(self, user_id=None):
-        if user_id is None:
-            users = UserModel.query.all()
-            if not users:
-                abort(404, error=f"No users yet")
+    @marshal_with(UserResponseSchema)
+    def get(self, user_id):
+        user = UserModel.query.get(user_id)
+        if not user:
+            abort(404, error=f"No user with id={user_id}")
+        return user, 200
 
-        if user_id is not None:
-            user = UserModel.query.get(user_id)
-            if not user:
-                abort(404, error=f"No user with id={user_id}")
-            users = [user]
-
-        return users_schema.dump(users)
-
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("username", required=True)
-        parser.add_argument("password", required=True)
-        user_data = parser.parse_args()
-
-        user = UserModel(**user_data)
-
+    @use_kwargs(UserRequestSchema, location=('json'))
+    @marshal_with(UserResponseSchema)
+    def post(self, **kwargs):
+        user = UserModel(**kwargs)
         try:
             user.save()
-            return user_schema.dump(user), 201
+            return user, 201
         except:
             abort(404, error=f"An error occurred while adding new user"\
                               "or an user with such name is already exist. "\
@@ -60,3 +52,14 @@ class UserResource(Resource):
             return f"User with id={user_id} deleted", 200
         except:
             abort(404, error=f"An error occurred while deleting the user")
+
+
+@doc(description='Api for notes.', tags=['UsersList'])
+class UserListResource(MethodResource):
+
+    @marshal_with(UserResponseSchema(many=True))
+    def get(self):
+        users = UserModel.query.all()
+        if not users:
+            abort(404, error=f"No users yet")
+        return users, 200

@@ -32,7 +32,7 @@ class TestUsers(TestCase):
         res = self.client.get('/users')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        #print(data)
+        print(data)
         self.assertEqual(data[0]["username"], users_data[0]["username"])
         self.assertEqual(data[1]["username"], users_data[1]["username"])
 
@@ -41,10 +41,28 @@ class TestUsers(TestCase):
            "username": 'admin',
            'password': 'admin'
         }
-        res = self.client.post('/users', data=user_data)
+        res = self.client.post('/users', data=json.dumps(user_data), content_type="application/json")
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 201)
         self.assertIn('admin', data.values())
+
+    def test_user_get_by_id(self):
+        user_data = {
+            "username": 'admin',
+            'password': 'admin'
+        }
+        # user = UserModel(username=user_data['username'], password=user_data['password'])
+        user = UserModel(**user_data)
+        user.save()
+        user_id = user.id
+        response = self.client.get(f'/users/{user_id}')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["username"], user_data["username"])
+
+    def test_user_not_found_by_id(self):
+        response = self.client.get("/users/2")
+        self.assertEqual(response.status_code, 404)
 
     def test_user_not_found(self):
         res = self.client.get('/users/1')
