@@ -78,6 +78,15 @@ class NoteListResource(MethodResource):
         return note, 201
 
 
+@doc(tags=['NotesList'])
+@marshal_with(NoteResponseSchema(many=True))
+class NotesPublicResource(MethodResource):
+
+    def get(self):
+        notes = NoteModel.query.filter_by(private=False).all()
+        return notes, 200
+
+
 
 
 

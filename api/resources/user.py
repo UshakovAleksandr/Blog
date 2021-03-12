@@ -8,7 +8,6 @@ from flask_apispec import marshal_with, doc, use_kwargs
 @doc(tags=['Users'])
 class UserResource(MethodResource):
 
-    @marshal_with(UserResponseSchema)
     # @doc(
     #     summary="Get user by id",
     #     description="Returns user",
@@ -29,6 +28,7 @@ class UserResource(MethodResource):
     #         }
     #     }
     # )
+    @marshal_with(UserResponseSchema)
     def get(self, user_id):
         user = UserModel.query.get(user_id)
         if not user:
@@ -79,5 +79,5 @@ class UserListResource(MethodResource):
             return user, 201
         except:
             abort(404, error=f"An error occurred while adding new user" \
-                             "or an user with such name is already exist. " \
+                             "or a user with such name is already exist. " \
                              "You can only add a unique name")
