@@ -1,11 +1,13 @@
 from api import Resource, reqparse, db, auth, abort, g
 from api.models.note import NoteModel
+from api.models.tag import TagModel
 from api.schemas.note import NoteResponseSchema, NoteRequestSchema
 from flask_apispec.views import MethodResource
 from flask_apispec import marshal_with, doc, use_kwargs
+from webargs import fields
 
 
-@doc(tags=['Notes'])
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
 class NoteResource(MethodResource):
 
     @auth.login_required
@@ -33,6 +35,7 @@ class NoteResource(MethodResource):
             abort(403, error=f"Access denied to note with id={note_id}")
 
         note.note = kwargs["note"]
+        note.private = kwargs["private"]
         try:
             note.save()
             return note, 200
@@ -56,7 +59,7 @@ class NoteResource(MethodResource):
             abort(404, error=f"An error occurred while changing note")
 
 
-@doc(tags=['NotesList'])
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
 class NoteListResource(MethodResource):
 
     @auth.login_required
@@ -78,7 +81,7 @@ class NoteListResource(MethodResource):
         return note, 201
 
 
-@doc(tags=['NotesList'])
+@doc(tags=['Notes'])
 @marshal_with(NoteResponseSchema(many=True))
 class NotesPublicResource(MethodResource):
 
@@ -87,15 +90,17 @@ class NotesPublicResource(MethodResource):
         return notes, 200
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+@doc(tags=['Notes'])
+class NoteSetTagsResource(MethodResource):
+    @doc(summary="Set tags to Note")
+    @use_kwargs({"tags": fields.List(fields.Int())}, location=('json'))
+    @marshal_with(NoteResponseSchema)
+    def put(self, note_id, **kwargs):
+        note = NoteModel.query.get(note_id)
+        if not note:
+            abort(404, error=f"note {note_id} not found")
+        for tag_id in kwargs["tags"]:
+            tag = TagModel.query.get(tag_id)
+            note.tags.append(tag)
+        note.save()
+        return note, 200

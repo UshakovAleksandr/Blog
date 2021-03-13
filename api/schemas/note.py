@@ -1,6 +1,7 @@
 from api import ma
 from api.models.note import NoteModel
 from api.schemas.user import UserResponseSchema
+from api.schemas.tag import TagResponseSchema
 
 
 class NoteRequestSchema(ma.SQLAlchemySchema):
@@ -20,3 +21,5 @@ class NoteResponseSchema(ma.SQLAlchemyAutoSchema):
     private = ma.auto_field()
     date = ma.auto_field()
     author = ma.Nested(UserResponseSchema())
+    tags = ma.Nested(TagResponseSchema(many=True))
+

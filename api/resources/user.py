@@ -60,7 +60,7 @@ class UserResource(MethodResource):
             abort(404, error=f"An error occurred while deleting the user")
 
 
-@doc(tags=['UsersList'])
+@doc(tags=['Users'])
 class UserListResource(MethodResource):
 
     @marshal_with(UserResponseSchema(many=True))
