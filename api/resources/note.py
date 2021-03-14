@@ -82,9 +82,9 @@ class NoteListResource(MethodResource):
 
 
 @doc(tags=['Notes'])
-@marshal_with(NoteResponseSchema(many=True))
 class NotesPublicResource(MethodResource):
 
+    @marshal_with(NoteResponseSchema(many=True))
     def get(self):
         notes = NoteModel.query.filter_by(private=False).all()
         return notes, 200
@@ -104,3 +104,44 @@ class NoteSetTagsResource(MethodResource):
             note.tags.append(tag)
         note.save()
         return note, 200
+
+    # @use_kwargs({"tags": fields.List(fields.Int())}, location=('json'))
+    # def delete(self, note_id, **kwargs):
+    #     note = NoteModel.query.get(1)
+    #     print(note)
+    #     print(note.tags)
+    #     print(note.tags[0].id)
+    #     print(note.tags[0].name)
+
+        # if not note:
+        #     abort(404, error=f"note {note_id} not found")
+        # for tag_id in kwargs["tags"]:
+        #db.session.remove()
+
+
+
+@doc(tags=['Notes'])
+class NoteFilterResource(MethodResource):
+
+    @use_kwargs({"tag": fields.List(fields.Str())}, location=('query'))
+    @marshal_with(NoteResponseSchema(many=True))
+    def get(self, **kwargs):
+        print(kwargs)
+        notes_lst = []
+        for tag_id in kwargs["tag"]:
+            """
+            SELECT note FROM note_model
+            LEFT JOIN tags
+            ON  note_model.id = tags.note_model_id
+            LEFT JOIN tag
+            ON tags.tag_id = tag.id
+            WHERE tag.name = "tag 2"
+            """
+            notes = db.session.query(NoteModel.note).\
+                join(NoteModel.tags).filter(TagModel.name == tag_id).all()
+            if not notes:
+                abort(404, error=f"Notes with the specified tags were not found")
+            for note in notes:
+                if note not in notes_lst:
+                    notes_lst.append(note)
+        return notes_lst, 200

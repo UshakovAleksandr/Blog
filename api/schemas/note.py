@@ -22,4 +22,3 @@ class NoteResponseSchema(ma.SQLAlchemyAutoSchema):
     date = ma.auto_field()
     author = ma.Nested(UserResponseSchema())
     tags = ma.Nested(TagResponseSchema(many=True))
-
