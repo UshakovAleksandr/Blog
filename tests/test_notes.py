@@ -142,7 +142,8 @@ class TestNotes(TestCase):
             ids.append(note.id)
 
         headers = {
-            'Authorization': 'Basic ' + b64encode(f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
+            'Authorization': 'Basic ' + b64encode(
+                f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
         }
         res = self.client.get('/notes', headers=headers)
         self.assertEqual(res.status_code, 200)
@@ -163,7 +164,8 @@ class TestNotes(TestCase):
         self.assertEqual(data[0]["username"], user_data["username"])
 
         headers = {
-            'Authorization': 'Basic ' + b64encode(f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
+            'Authorization': 'Basic ' + b64encode(
+                f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
         }
         res = self.client.get('/notes', headers=headers)
         self.assertEqual(res.status_code, 404)

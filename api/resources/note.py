@@ -23,7 +23,7 @@ class NoteResource(MethodResource):
         return note, 200
 
     @auth.login_required
-    @use_kwargs(NoteRequestSchema, location=('json'))
+    @use_kwargs(NoteRequestSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
         author = g.user
@@ -72,7 +72,7 @@ class NoteListResource(MethodResource):
         return notes, 200
 
     @auth.login_required
-    @use_kwargs(NoteRequestSchema, location=('json'))
+    @use_kwargs(NoteRequestSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def post(self, **kwargs):
         author = g.user
@@ -93,7 +93,7 @@ class NotesPublicResource(MethodResource):
 @doc(tags=['Notes'])
 class NoteSetTagsResource(MethodResource):
     @doc(summary="Set tags to Note")
-    @use_kwargs({"tags": fields.List(fields.Int())}, location=('json'))
+    @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
         note = NoteModel.query.get(note_id)
@@ -119,11 +119,10 @@ class NoteSetTagsResource(MethodResource):
         #db.session.remove()
 
 
-
 @doc(tags=['Notes'])
 class NoteFilterResource(MethodResource):
 
-    @use_kwargs({"tag": fields.List(fields.Str())}, location=('query'))
+    @use_kwargs({"tag": fields.List(fields.Str())}, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
         print(kwargs)

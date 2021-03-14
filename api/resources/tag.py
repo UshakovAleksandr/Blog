@@ -29,7 +29,7 @@ class TagListResource(MethodResource):
         return tags, 200
 
     @doc(summary="Create new tag")
-    @use_kwargs(TagRequestSchema, location=('json'))
+    @use_kwargs(TagRequestSchema, location='json')
     @marshal_with(TagResponseSchema)
     def post(self, **kwargs):
         tag = TagModel(**kwargs)
