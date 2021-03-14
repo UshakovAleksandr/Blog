@@ -4,6 +4,7 @@ from app import app, Config
 from unittest import TestCase
 from api.models.user import UserModel
 from api.models.note import NoteModel
+from api.models.tag import TagModel
 from base64 import b64encode
 
 
@@ -411,7 +412,314 @@ class TestNotes(TestCase):
         data = json.loads(res.data)
         self.assertEqual(data["error"], f"Access denied to note with id={note1_id}")
 
+    def test_put_tag_set_to_note(self):
+        user_data = {
+            "username": 'test',
+            'password': 'test'
+        }
+
+        user = UserModel(**user_data)
+        user.save()
+        user_id = user.id
+        res = self.client.get("/users")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data[0]["username"], user_data["username"])
+
+        note_data = {
+            "note": 'test note 1'
+        }
+        headers = {
+            'Authorization': 'Basic ' + b64encode(
+                f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
+        }
+        note = NoteModel(author_id=user_id, **note_data)
+        note.save()
+        note_id = note.id
+        res = self.client.get(f"/notes/{note_id}", headers=headers)
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["note"], note_data["note"])
+
+        tags_data = [
+            {
+                "name": 'test1 tag'
+            },
+            {
+                "name": 'test2 tag'
+            }
+        ]
+
+        for tag_data in tags_data:
+            tag = TagModel(**tag_data)
+            tag.save()
+
+        res = self.client.get("/tags")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data[0]["name"], tags_data[0]["name"])
+        self.assertEqual(data[1]["name"], tags_data[1]["name"])
+
+        tags_set_data = {
+            "tags": [
+                1, 2
+            ]
+        }
+
+        res = self.client.put(f"/notes/{note_id}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["tags"][0]["name"], tags_data[0]["name"])
+        self.assertEqual(data["tags"][1]["name"], tags_data[1]["name"])
+
+    def test_put_tag_set_to_note_note_not_found(self):
+        tags_data = [
+            {
+                "name": 'test1 tag'
+            },
+            {
+                "name": 'test2 tag'
+            }
+        ]
+
+        for tag_data in tags_data:
+            tag = TagModel(**tag_data)
+            tag.save()
+
+        res = self.client.get("/tags")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data[0]["name"], tags_data[0]["name"])
+        self.assertEqual(data[1]["name"], tags_data[1]["name"])
+
+        tags_set_data = {
+            "tags": [
+                1, 2
+            ]
+        }
+
+        res = self.client.put(f"/notes/1/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        self.assertEqual(res.status_code, 404)
+        data = json.loads(res.data)
+        self.assertEqual(data["error"], "note with id=1 not found")
+
+    def test_put_tag_set_to_note_tag_not_found(self):
+        user_data = {
+            "username": 'test',
+            'password': 'test'
+        }
+
+        user = UserModel(**user_data)
+        user.save()
+        user_id = user.id
+        res = self.client.get("/users")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data[0]["username"], user_data["username"])
+
+        note_data = {
+            "note": 'test note 1'
+        }
+        headers = {
+            'Authorization': 'Basic ' + b64encode(
+                f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
+        }
+        note = NoteModel(author_id=user_id, **note_data)
+        note.save()
+        note_id = note.id
+        res = self.client.get(f"/notes/{note_id}", headers=headers)
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["note"], note_data["note"])
+
+        tags_data = [
+            {
+                "name": 'test1 tag'
+            },
+            {
+                "name": 'test2 tag'
+            }
+        ]
+
+        for tag_data in tags_data:
+            tag = TagModel(**tag_data)
+            tag.save()
+
+        res = self.client.get("/tags")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data[0]["name"], tags_data[0]["name"])
+        self.assertEqual(data[1]["name"], tags_data[1]["name"])
+
+        tags_set_data = {
+            "tags": [
+                1, 3
+            ]
+        }
+
+        res = self.client.put(f"/notes/{note_id}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        self.assertEqual(res.status_code, 404)
+        data = json.loads(res.data)
+        self.assertEqual(data["error"], f"Tag with id={tags_set_data['tags'][1]} not found")
+
+    def test_get_note_by_tags(self):
+        user_data = {
+            "username": 'test',
+            'password': 'test'
+        }
+        user = UserModel(**user_data)
+        user.save()
+        res = self.client.get("/users")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data[0]["username"], user_data["username"])
+
+        notes_data = [
+            {
+                "note": 'test note 1'
+            },
+            {
+                "note": 'test note 2'
+            },
+        ]
+        ids = []
+        for note_data in notes_data:
+            note = NoteModel(author_id=user.id, **note_data)
+            note.save()
+            ids.append(note.id)
+
+        headers = {
+            'Authorization': 'Basic ' + b64encode(
+                f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
+        }
+        res = self.client.get('/notes', headers=headers)
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(len(data), 2)
+
+        tags_data = [
+            {
+                "name": 'test1 tag'
+            },
+            {
+                "name": 'test2 tag'
+            }
+        ]
+        for tag_data in tags_data:
+            tag = TagModel(**tag_data)
+            tag.save()
+
+        res = self.client.get("/tags")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data[0]["name"], tags_data[0]["name"])
+        self.assertEqual(data[1]["name"], tags_data[1]["name"])
+
+        tags_set_data = {
+            "tags": [
+                1, 2
+            ]
+        }
+        res = self.client.put(f"/notes/{ids[0]}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["tags"][0]["name"], tags_data[0]["name"])
+        self.assertEqual(data["tags"][1]["name"], tags_data[1]["name"])
+
+        res = self.client.get("/notes/filter?tag=test1 tag&tag=test2 tag")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data[0]["note"], notes_data[0]["note"])
+
+    def test_get_note_by_tags_note_not_found(self):
+        user_data = {
+            "username": 'test',
+            'password': 'test'
+        }
+        user = UserModel(**user_data)
+        user.save()
+        res = self.client.get("/users")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data[0]["username"], user_data["username"])
+
+        notes_data = [
+            {
+                "note": 'test note 1'
+            },
+            {
+                "note": 'test note 2'
+            },
+        ]
+        ids = []
+        for note_data in notes_data:
+            note = NoteModel(author_id=user.id, **note_data)
+            note.save()
+            ids.append(note.id)
+
+        headers = {
+            'Authorization': 'Basic ' + b64encode(
+                f"{user_data['username']}:{user_data['password']}".encode('ascii')).decode('utf-8')
+        }
+        res = self.client.get('/notes', headers=headers)
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(len(data), 2)
+
+        tags_data = [
+            {
+                "name": 'test1 tag'
+            },
+            {
+                "name": 'test2 tag'
+            },
+            {
+                "name": 'test3 tag'
+            }
+        ]
+        for tag_data in tags_data:
+            tag = TagModel(**tag_data)
+            tag.save()
+
+        res = self.client.get("/tags")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data[0]["name"], tags_data[0]["name"])
+        self.assertEqual(data[1]["name"], tags_data[1]["name"])
+
+        tags_set_data = {
+            "tags": [
+                1, 2
+            ]
+        }
+        res = self.client.put(f"/notes/{ids[0]}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["tags"][0]["name"], tags_data[0]["name"])
+        self.assertEqual(data["tags"][1]["name"], tags_data[1]["name"])
+
+        res = self.client.get("/notes/filter?tag=test3 tag")
+        self.assertEqual(res.status_code, 404)
+        data = json.loads(res.data)
+        self.assertEqual(data["error"], "Notes with the specified tags were not found")
+
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
             db.drop_all()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

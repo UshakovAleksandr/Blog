@@ -98,9 +98,11 @@ class NoteSetTagsResource(MethodResource):
     def put(self, note_id, **kwargs):
         note = NoteModel.query.get(note_id)
         if not note:
-            abort(404, error=f"note {note_id} not found")
+            abort(404, error=f"note with id={note_id} not found")
         for tag_id in kwargs["tags"]:
             tag = TagModel.query.get(tag_id)
+            if not tag:
+                abort(404, error=f"Tag with id={tag_id} not found")
             note.tags.append(tag)
         note.save()
         return note, 200
@@ -125,7 +127,7 @@ class NoteFilterResource(MethodResource):
     @use_kwargs({"tag": fields.List(fields.Str())}, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
-        print(kwargs)
+        #print(kwargs)
         notes_lst = []
         for tag_id in kwargs["tag"]:
             """
