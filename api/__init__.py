@@ -43,8 +43,7 @@ app.config.update({
 
 api = Api(app)
 db = SQLAlchemy(app)
-#migrate = Migrate(app, db, render_as_batch=True)
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, render_as_batch=True)
 ma = Marshmallow(app)
 auth = HTTPBasicAuth()
 docs = FlaskApiSpec(app)
