@@ -1,3 +1,4 @@
+#import logging
 from flask import Flask, g
 from flask_restful import Api, Resource, reqparse, abort
 from flask_sqlalchemy import SQLAlchemy
@@ -31,6 +32,15 @@ app.config.update({
     'APISPEC_SWAGGER_URL': '/swagger',  # URI API Doc JSON
     'APISPEC_SWAGGER_UI_URL': '/swagger-ui'  # URI UI of API Doc
 })
+
+# logging.basicConfig(filename='record.log',
+#                    level=logging.INFO,
+#                    format=f'%(asctime)s %(levelname)s %(name)s : %(message)s')
+# # Настройка уровня логирования flask
+# app.logger.setLevel(logging.INFO)
+# # Настройка уровня логирования сервера-разработки werkzeug
+# logging.getLogger('werkzeug').setLevel(logging.INFO)
+
 api = Api(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db, render_as_batch=True)

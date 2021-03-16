@@ -29,6 +29,7 @@ class UserResource(MethodResource):
     #     }
     # )
     @marshal_with(UserResponseSchema)
+    @doc(summary="Get user by id")
     def get(self, user_id):
         user = UserModel.query.get(user_id)
         if not user:
@@ -37,6 +38,7 @@ class UserResource(MethodResource):
 
     @use_kwargs(UserRequestPutSchema, location=('json'))
     @marshal_with(UserResponseSchema)
+    @doc(summary="Change user by id")
     def put(self, user_id, **kwargs):
         user = UserModel.query.get(user_id)
         if not user:
@@ -49,6 +51,7 @@ class UserResource(MethodResource):
         except:
             abort(404, error=f"An error occurred while changing the user")
 
+    @doc(summary="Delete user by id")
     def delete(self, user_id):
         user = UserModel.query.get(user_id)
         if not user:
@@ -64,6 +67,7 @@ class UserResource(MethodResource):
 class UserListResource(MethodResource):
 
     @marshal_with(UserResponseSchema(many=True))
+    @doc(summary="Get all users")
     def get(self):
         users = UserModel.query.all()
         if not users:
@@ -72,6 +76,7 @@ class UserListResource(MethodResource):
 
     @use_kwargs(UserRequestSchema, location=('json'))
     @marshal_with(UserResponseSchema)
+    @doc(summary="Create new user")
     def post(self, **kwargs):
         user = UserModel(**kwargs)
         try:
