@@ -16,6 +16,31 @@ class TagResource(MethodResource):
             abort(404, error=f"Tag with id={tag_id} not found")
         return tag, 200
 
+    @doc(summary="Change tag by id")
+    @use_kwargs(TagRequestSchema, location='json')
+    @marshal_with(TagResponseSchema)
+    def put(self, tag_id, **kwargs):
+        tag = TagModel.query.get(tag_id)
+        if not tag:
+            abort(404, error=f"Tag with id={tag_id} not found")
+        tag.name = kwargs["name"]
+        try:
+            tag.save()
+            return tag, 200
+        except:
+            abort(404, error=f"An error occurred while changing tag")
+
+    @doc(summary="Delete tag by id")
+    def delete(self, tag_id):
+        tag = TagModel.query.get(tag_id)
+        if not tag:
+            abort(404, error=f"Tag with id={tag_id} not found")
+        try:
+            tag.delete()
+            return f"Tag with id={tag_id} deleted"
+        except:
+            abort(404, error=f"An error occurred while changing note")
+
 
 @doc(tags=['Tags'])
 class TagListResource(MethodResource):

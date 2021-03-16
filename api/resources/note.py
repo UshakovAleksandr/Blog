@@ -33,10 +33,8 @@ class NoteResource(MethodResource):
         note = NoteModel.query.get(note_id)
         if not note:
             abort(404, error=f"Note with id={note_id} not found")
-
         if note.author != author:
             abort(403, error=f"Access denied to note with id={note_id}")
-
         note.note = kwargs["note"]
         note.private = kwargs["private"]
         try:
@@ -52,10 +50,8 @@ class NoteResource(MethodResource):
         note = NoteModel.query.get(note_id)
         if not note:
             abort(404, error=f"Note with id={note_id} not found")
-
         if note.author != author:
             abort(403, error=f"Access denied to note with id={note_id}")
-
         try:
             note.delete()
             return f"Note with id={note_id} deleted", 200
@@ -124,7 +120,7 @@ class NoteSetTagsResource(MethodResource):
         for tag_id in kwargs["tags"]:
             tag = TagModel.query.get(tag_id)
             if not tag:
-                abort(404, error=f"Tag with id={kwargs} not found")
+                abort(404, error=f"Tag with id={tag_id} not found")
             try:
                 note.tags.remove(tag)
             except:
@@ -136,16 +132,18 @@ class NoteSetTagsResource(MethodResource):
 @doc(tags=['Notes'])
 class NoteFilterResource(MethodResource):
 
+    @doc(summary="Get notes. Filter by tags")
     @use_kwargs({"tag": fields.List(fields.Str())}, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
         notes_lst = []
         for tag_name in kwargs["tag"]:
             #pdb.set_trace()
-            note = NoteModel.query.filter(NoteModel.tags.any(name=tag_name)).all()
-            if not note:
+            notes = NoteModel.query.filter(NoteModel.tags.any(name=tag_name)).all()
+            if not notes:
                 abort(404, error=f"Note with the specified tagname={tag_name} not found")
-            if note[0] not in notes_lst:
-                notes_lst.append(note[0])
-
+            for note in notes:
+                if note not in notes_lst:
+                    notes_lst.append(note)
         return notes_lst, 200
+

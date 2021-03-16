@@ -43,7 +43,6 @@ class UserResource(MethodResource):
         user = UserModel.query.get(user_id)
         if not user:
             abort(404, error=f"No user with id={user_id}")
-
         user.username = kwargs["username"]
         try:
             user.save()

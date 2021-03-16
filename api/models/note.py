@@ -12,7 +12,7 @@ tags = db.Table('tags',
 class NoteModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     note = db.Column(db.String(300), unique=False, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime, default=datetime.now)
     author_id = db.Column(db.Integer, db.ForeignKey(UserModel.id))
     private = db.Column(db.Boolean(), default=True,
                         server_default="true", nullable=False)
