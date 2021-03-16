@@ -1,5 +1,6 @@
-flask_venv/
+*env/
 .idea/
 *.db
 __pycache__/
 *.pyc
+*.log
