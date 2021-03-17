@@ -4,7 +4,7 @@ from api.schemas.user import UserResponseSchema
 from api.schemas.tag import TagResponseSchema
 
 
-class NoteRequestSchema(ma.SQLAlchemySchema):
+class NotePostRequestSchema(ma.SQLAlchemySchema):
     class Meta:
         model = NoteModel
 
@@ -12,7 +12,16 @@ class NoteRequestSchema(ma.SQLAlchemySchema):
     private = ma.Bool(required=False)
 
 
-class NoteResponseSchema(ma.SQLAlchemyAutoSchema):
+class NotePutRequestSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = NoteModel
+
+    note = ma.Str()
+    private = ma.Bool()
+    archive = ma.Bool()
+
+
+class NoteResponseSchema(ma.SQLAlchemySchema):
     class Meta:
         model = NoteModel
 
@@ -20,5 +29,6 @@ class NoteResponseSchema(ma.SQLAlchemyAutoSchema):
     note = ma.auto_field()
     private = ma.auto_field()
     date = ma.auto_field()
+    archive = ma.auto_field()
     author = ma.Nested(UserResponseSchema())
     tags = ma.Nested(TagResponseSchema(many=True))

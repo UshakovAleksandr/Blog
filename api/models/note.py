@@ -16,6 +16,8 @@ class NoteModel(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey(UserModel.id))
     private = db.Column(db.Boolean(), default=True,
                         server_default="true", nullable=False)
+    archive = db.Column(db.Boolean(), default=False,
+                        server_default="false", nullable=False)
     tags = db.relationship(TagModel, secondary=tags, lazy='subquery', backref=db.backref('notes', lazy=True))
 
     def save(self):

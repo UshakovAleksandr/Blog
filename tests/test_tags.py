@@ -87,8 +87,106 @@ class TestUsers(TestCase):
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "An error occurred while adding new tag" 
-                                        "or a tag with such name is already exist. " 
+                                        " or a tag with such name is already exist. " 
                                         "You can only add a unique tag")
+
+    def test_put_tag_by_id(self):
+        tag_data = {
+            "name": 'test tag'
+        }
+
+        tag = TagModel(**tag_data)
+        tag.save()
+        tag_id = tag.id
+
+        res = self.client.get(f"/tags/{tag_id}")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["name"], tag_data["name"])
+
+        tag_data_to_change = {
+            "name": 'test tag1'
+        }
+
+        res = self.client.put(f"tags/{tag_id}", data=json.dumps(tag_data_to_change),
+                              content_type="application/json")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["name"], tag_data_to_change["name"])
+
+    def test_put_tag_by_id_not_found(self):
+        tag_data_to_change = {
+            "name": 'test tag1'
+        }
+
+        res = self.client.put("tags/1", data=json.dumps(tag_data_to_change),
+                              content_type="application/json")
+        self.assertEqual(res.status_code, 404)
+        data = json.loads(res.data)
+        self.assertEqual(data["error"], "Tag with id=1 not found")
+
+    def test_put_tag_by_id_change_to_the_same_name(self):
+        tag_data1 = {
+            "name": 'test tag 1'
+        }
+
+        tag1 = TagModel(**tag_data1)
+        tag1.save()
+        tag1_id = tag1.id
+
+        res = self.client.get(f"/tags/{tag1_id}")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["name"], tag_data1["name"])
+
+        tag_data2 = {
+            "name": 'test tag 2'
+        }
+
+        tag2 = TagModel(**tag_data2)
+        tag2.save()
+        tag_id2 = tag2.id
+
+        res = self.client.get(f"/tags/{tag_id2}")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["name"], tag_data2["name"])
+
+        tag_data_to_change = {
+            "name": 'test tag 2'
+        }
+
+        res = self.client.put(f"tags/{tag1_id}", data=json.dumps(tag_data_to_change),
+                              content_type="application/json")
+        self.assertEqual(res.status_code, 404)
+        data = json.loads(res.data)
+        self.assertEqual(data["error"], f"An error occurred while changing tag"
+                                        f" or a tag with such name is already exist.")
+
+    def test_delete_tag_by_id(self):
+        tag_data = {
+            "name": 'test tag'
+        }
+
+        tag = TagModel(**tag_data)
+        tag.save()
+        tag_id = tag.id
+
+        res = self.client.get(f"/tags/{tag_id}")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data["name"], tag_data["name"])
+
+        res = self.client.delete(f"tags/{tag_id}")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertEqual(data, f"Tag with id={tag_id} deleted")
+
+    def test_delete_tag_by_id_not_found(self):
+        res = self.client.delete("tags/1")
+        self.assertEqual(res.status_code, 404)
+        data = json.loads(res.data)
+        self.assertEqual(data["error"], "Tag with id=1 not found")
 
     def tearDown(self):
         with self.app.app_context():

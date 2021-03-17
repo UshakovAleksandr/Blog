@@ -1,6 +1,6 @@
 from api import Resource, reqparse, db, abort
 from api.models.user import UserModel
-from api.schemas.user import UserRequestSchema, UserResponseSchema, UserRequestPutSchema
+from api.schemas.user import UserRequestSchema, UserResponseSchema, UserPutRequestSchema
 from flask_apispec.views import MethodResource
 from flask_apispec import marshal_with, doc, use_kwargs
 
@@ -36,7 +36,7 @@ class UserResource(MethodResource):
             abort(404, error=f"No user with id={user_id}")
         return user, 200
 
-    @use_kwargs(UserRequestPutSchema, location=('json'))
+    @use_kwargs(UserPutRequestSchema, location=('json'))
     @marshal_with(UserResponseSchema)
     @doc(summary="Change user by id")
     def put(self, user_id, **kwargs):

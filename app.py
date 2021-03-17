@@ -6,6 +6,12 @@ from api.resources.note import NoteResource, NoteListResource,\
 from api.resources.user import UserResource, UserListResource
 from api.resources.tag import TagListResource, TagResource
 from api.resources.token import TokenResource
+from flask import render_template
+
+
+@app.route("/", methods=["GET"])
+def main_page():
+    return render_template("index.html")
 
 
 api.add_resource(UserListResource, "/users")               # GET, POST

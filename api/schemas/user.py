@@ -16,7 +16,7 @@ class UserResponseSchema(ma.SQLAlchemyAutoSchema):
         fields = ("id", "username")
 
 
-class UserRequestPutSchema(ma.SQLAlchemySchema):
+class UserPutRequestSchema(ma.SQLAlchemySchema):
     class Meta:
         model = UserModel
 

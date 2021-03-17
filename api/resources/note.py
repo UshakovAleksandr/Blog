@@ -1,7 +1,7 @@
 from api import Resource, reqparse, db, auth, abort, g
 from api.models.note import NoteModel
 from api.models.tag import TagModel
-from api.schemas.note import NoteResponseSchema, NoteRequestSchema
+from api.schemas.note import NoteResponseSchema, NotePostRequestSchema, NotePutRequestSchema
 from flask_apispec.views import MethodResource
 from flask_apispec import marshal_with, doc, use_kwargs
 from webargs import fields
@@ -25,7 +25,7 @@ class NoteResource(MethodResource):
         return note, 200
 
     @auth.login_required
-    @use_kwargs(NoteRequestSchema, location='json')
+    @use_kwargs(NotePutRequestSchema, location='json')
     @marshal_with(NoteResponseSchema)
     @doc(summary="Change note by id")
     def put(self, note_id, **kwargs):
@@ -37,6 +37,7 @@ class NoteResource(MethodResource):
             abort(403, error=f"Access denied to note with id={note_id}")
         note.note = kwargs["note"]
         note.private = kwargs["private"]
+        note.archive = kwargs["archive"]
         try:
             note.save()
             return note, 200
@@ -67,13 +68,13 @@ class NoteListResource(MethodResource):
     @doc(summary="Get all notes")
     def get(self):
         author = g.user
-        notes = NoteModel.query.filter_by(author_id=author.id).all()
+        notes = NoteModel.query.filter_by(author_id=author.id, archive=False).all()
         if not notes:
             abort(404, error=f"You have no notes yet")
         return notes, 200
 
     @auth.login_required
-    @use_kwargs(NoteRequestSchema, location='json')
+    @use_kwargs(NotePostRequestSchema, location='json')
     @marshal_with(NoteResponseSchema)
     @doc(summary="Create note")
     def post(self, **kwargs):
@@ -141,15 +142,15 @@ class NoteRemoveTagsResource(MethodResource):
 class NoteFilterResource(MethodResource):
 
     @doc(summary="Get notes. Filter by tags")
-    @use_kwargs({"tag": fields.List(fields.Str())}, location='query')
+    @use_kwargs({"tags": fields.List(fields.Str())}, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
         notes_lst = []
-        for tag_name in kwargs["tag"]:
+        for tag_name in kwargs["tags"]:
             #pdb.set_trace()
             notes = NoteModel.query.filter(NoteModel.tags.any(name=tag_name)).all()
             if not notes:
-                abort(404, error=f"Note with the specified tagname={tag_name} not found")
+                abort(404, error=f"Note with tag_name={tag_name} not found")
             for note in notes:
                 if note not in notes_lst:
                     notes_lst.append(note)

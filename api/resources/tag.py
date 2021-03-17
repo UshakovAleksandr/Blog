@@ -28,7 +28,8 @@ class TagResource(MethodResource):
             tag.save()
             return tag, 200
         except:
-            abort(404, error=f"An error occurred while changing tag")
+            abort(404, error=f"An error occurred while changing tag"
+                             f" or a tag with such name is already exist.")
 
     @doc(summary="Delete tag by id")
     def delete(self, tag_id):
@@ -37,7 +38,7 @@ class TagResource(MethodResource):
             abort(404, error=f"Tag with id={tag_id} not found")
         try:
             tag.delete()
-            return f"Tag with id={tag_id} deleted"
+            return f"Tag with id={tag_id} deleted", 200
         except:
             abort(404, error=f"An error occurred while changing note")
 
@@ -62,6 +63,6 @@ class TagListResource(MethodResource):
             tag.save()
             return tag, 201
         except:
-            abort(404, error=f"An error occurred while adding new tag" \
-                             "or a tag with such name is already exist. " \
+            abort(404, error=f"An error occurred while adding new tag"
+                             " or a tag with such name is already exist. "
                              "You can only add a unique tag")

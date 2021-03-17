@@ -230,7 +230,8 @@ class TestNotes(TestCase):
 
         note_data_to_change = {
             "note": 'test note 2',
-            "private": bool("False")
+            "private": bool("False"),
+            "archive": bool("True")
         }
 
         res = self.client.put(f"/notes/{note_id}", headers=headers, data=json.dumps(note_data_to_change),
@@ -239,6 +240,7 @@ class TestNotes(TestCase):
         data = json.loads(res.data)
         self.assertEqual(data["note"], note_data_to_change["note"])
         self.assertEqual(data["private"], note_data_to_change["private"])
+        self.assertEqual(data["archive"], note_data_to_change["archive"])
 
     def test_put_note_by_id_not_found(self):
         user_data = {
@@ -260,7 +262,8 @@ class TestNotes(TestCase):
 
         note_data_to_change = {
             "note": 'test note 2',
-            "private": bool("False")
+            "private": bool("False"),
+            "archive": bool("True")
         }
 
         res = self.client.put("/notes/1", headers=headers, data=json.dumps(note_data_to_change),
@@ -305,7 +308,8 @@ class TestNotes(TestCase):
 
         note_data_to_change = {
             "note": 'test note 2',
-            "private": bool("False")
+            "private": bool("False"),
+            "archive": bool("True")
         }
 
         headers = {
@@ -466,7 +470,8 @@ class TestNotes(TestCase):
             ]
         }
 
-        res = self.client.put(f"/notes/{note_id}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        res = self.client.put(f"/notes/{note_id}/tags/set", data=json.dumps(tags_set_data),
+                              content_type="application/json")
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data["tags"][0]["name"], tags_data[0]["name"])
@@ -498,7 +503,7 @@ class TestNotes(TestCase):
             ]
         }
 
-        res = self.client.put(f"/notes/1/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        res = self.client.put(f"/notes/1/tags/set", data=json.dumps(tags_set_data), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "note with id=1 not found")
@@ -557,7 +562,7 @@ class TestNotes(TestCase):
             ]
         }
 
-        res = self.client.put(f"/notes/{note_id}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        res = self.client.put(f"/notes/{note_id}/tags/set", data=json.dumps(tags_set_data), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], f"Tag with id={tags_set_data['tags'][1]} not found")
@@ -599,10 +604,10 @@ class TestNotes(TestCase):
 
         tags_data = [
             {
-                "name": 'test1 tag'
+                "name": 'tag 1'
             },
             {
-                "name": 'test2 tag'
+                "name": 'tag 2'
             }
         ]
         for tag_data in tags_data:
@@ -620,13 +625,13 @@ class TestNotes(TestCase):
                 1, 2
             ]
         }
-        res = self.client.put(f"/notes/{ids[0]}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        res = self.client.put(f"/notes/{ids[0]}/tags/set", data=json.dumps(tags_set_data), content_type="application/json")
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data["tags"][0]["name"], tags_data[0]["name"])
         self.assertEqual(data["tags"][1]["name"], tags_data[1]["name"])
 
-        res = self.client.get("/notes/filter?tag=test1 tag&tag=test2 tag")
+        res = self.client.get("/notes/filter?tags=tag 1&tags=tag 2")
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data[0]["note"], notes_data[0]["note"])
@@ -692,16 +697,16 @@ class TestNotes(TestCase):
                 1, 2
             ]
         }
-        res = self.client.put(f"/notes/{ids[0]}/tags", data=json.dumps(tags_set_data), content_type="application/json")
+        res = self.client.put(f"/notes/{ids[0]}/tags/set", data=json.dumps(tags_set_data), content_type="application/json")
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data["tags"][0]["name"], tags_data[0]["name"])
         self.assertEqual(data["tags"][1]["name"], tags_data[1]["name"])
 
-        res = self.client.get("/notes/filter?tag=test3 tag")
+        res = self.client.get(f"/notes/filter?tags={tags_data[2]['name']}")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
-        self.assertEqual(data["error"], "Notes with the specified tags were not found")
+        self.assertEqual(data["error"], f"Note with tag_name={tags_data[2]['name']} not found")
 
     def tearDown(self):
         with self.app.app_context():
