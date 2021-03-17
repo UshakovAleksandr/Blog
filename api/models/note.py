@@ -30,7 +30,7 @@ class NoteModel(db.Model):
 
     @classmethod
     def get_notes_filtered_by_tags(cls, tag_name):
-        return NoteModel.query.filter(NoteModel.tags.any(name=tag_name)).all()
+        return NoteModel.query.filter(NoteModel.tags.any(name=tag_name), NoteModel.archive == False).all()
 
     def save(self):
         db.session.add(self)
