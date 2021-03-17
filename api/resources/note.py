@@ -68,7 +68,7 @@ class NoteListResource(MethodResource):
     @doc(summary="Get all notes")
     def get(self):
         author = g.user
-        notes = NoteModel.query.filter_by(author_id=author.id, archive=False).all()
+        notes = NoteModel.get_all_notes(author)
         if not notes:
             abort(404, error=f"You have no notes yet")
         return notes, 200
@@ -90,7 +90,9 @@ class NotesPublicResource(MethodResource):
     @marshal_with(NoteResponseSchema(many=True))
     @doc(summary="Get all public notes")
     def get(self):
-        notes = NoteModel.query.filter_by(private=False).all()
+        notes = NoteModel.get_all_public_notes()
+        if not notes:
+            abort(404, error=f"Public notes not found")
         return notes, 200
 
 
@@ -148,7 +150,7 @@ class NoteFilterResource(MethodResource):
         notes_lst = []
         for tag_name in kwargs["tags"]:
             #pdb.set_trace()
-            notes = NoteModel.query.filter(NoteModel.tags.any(name=tag_name)).all()
+            notes = NoteModel.get_notes_filtered_by_tags(tag_name)
             if not notes:
                 abort(404, error=f"Note with tag_name={tag_name} not found")
             for note in notes:

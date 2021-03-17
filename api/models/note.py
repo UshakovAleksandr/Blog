@@ -20,6 +20,18 @@ class NoteModel(db.Model):
                         server_default="false", nullable=False)
     tags = db.relationship(TagModel, secondary=tags, lazy='subquery', backref=db.backref('notes', lazy=True))
 
+    @classmethod
+    def get_all_notes(cls, author):
+        return NoteModel.query.filter_by(author_id=author.id, archive=False).all()
+
+    @classmethod
+    def get_all_public_notes(cls):
+        return NoteModel.query.filter_by(private=False, archive=False).all()
+
+    @classmethod
+    def get_notes_filtered_by_tags(cls, tag_name):
+        return NoteModel.query.filter(NoteModel.tags.any(name=tag_name)).all()
+
     def save(self):
         db.session.add(self)
         db.session.commit()
