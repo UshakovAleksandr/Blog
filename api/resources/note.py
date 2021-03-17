@@ -95,7 +95,8 @@ class NotesPublicResource(MethodResource):
 
 @doc(tags=['Notes'])
 class NoteSetTagsResource(MethodResource):
-    @doc(summary="Set tags to Note")
+
+    @doc(summary="Set tags to note")
     @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
@@ -110,10 +111,14 @@ class NoteSetTagsResource(MethodResource):
         note.save()
         return note, 200
 
-    @doc(summary="Delete tags from Note")
+
+@doc(tags=['Notes'])
+class NoteRemoveTagsResource(MethodResource):
+
+    @doc(summary="Remove tags from note")
     @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
     @marshal_with(NoteResponseSchema)
-    def delete(self, note_id, **kwargs):
+    def put(self, note_id, **kwargs):
         note = NoteModel.query.get(note_id)
         if not note:
             abort(404, error=f"note with id={note_id} not found")
@@ -123,8 +128,11 @@ class NoteSetTagsResource(MethodResource):
                 abort(404, error=f"Tag with id={tag_id} not found")
             try:
                 note.tags.remove(tag)
+            except ValueError:
+                abort(400, error=f"Note with id={note_id} has no tag with id={tag_id}")
             except:
-                abort(404, error=f"Note with id={note_id} have no tag with id={tag_id}")
+                abort(404, error=f"An error occurred while removing tag from note."
+                                 f" May be connection problems with DB. ")
         note.save()
         return note, 200
 
