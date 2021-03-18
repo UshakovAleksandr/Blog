@@ -21,7 +21,6 @@ class NoteResource(MethodResource):
             abort(404, error=f"Note with id={note_id} not found")
         if note.author != author:
             abort(403, error=f"Access denied to note with id={note_id}")
-
         return note, 200
 
     @auth.login_required
@@ -96,39 +95,51 @@ class NotesPublicResource(MethodResource):
         return notes, 200
 
 
-@doc(tags=['Notes'])
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
 class NoteSetTagsResource(MethodResource):
 
+    @auth.login_required
     @doc(summary="Set tags to note")
     @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
+        author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
             abort(404, error=f"note with id={note_id} not found")
+        if note.author != author:
+            abort(403, error=f"Access denied to note with id={note_id}")
         for tag_id in kwargs["tags"]:
             tag = TagModel.query.get(tag_id)
             if not tag:
                 abort(404, error=f"Tag with id={tag_id} not found")
+            if tag.author != author:
+                abort(403, error=f"Access denied to tag with id={tag_id}")
             note.tags.append(tag)
         note.save()
         return note, 200
 
 
-@doc(tags=['Notes'])
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
 class NoteRemoveTagsResource(MethodResource):
 
+    @auth.login_required
     @doc(summary="Remove tags from note")
     @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
+        author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
             abort(404, error=f"note with id={note_id} not found")
+        if note.author != author:
+            abort(403, error=f"Access denied to note with id={note_id}")
         for tag_id in kwargs["tags"]:
             tag = TagModel.query.get(tag_id)
             if not tag:
                 abort(404, error=f"Tag with id={tag_id} not found")
+            if tag.author != author:
+                abort(403, error=f"Access denied to tag with id={tag_id}")
             try:
                 note.tags.remove(tag)
             except ValueError:

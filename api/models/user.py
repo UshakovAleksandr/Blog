@@ -9,6 +9,7 @@ class UserModel(db.Model):
     username = db.Column(db.String(32), unique=True)
     password_hash = db.Column(db.String(128))
     notes = db.relationship('NoteModel', backref='author', lazy='joined', cascade="all, delete-orphan")
+    tags = db.relationship('TagModel', backref='author', lazy='joined', cascade="all, delete-orphan")
 
     def __init__(self, username, password):
         self.username = username
