@@ -2,7 +2,6 @@ import json
 from api import db
 from app import app, Config
 from unittest import TestCase
-from api.models.tag import TagModel
 from api.models.user import UserModel
 from base64 import b64encode
 
@@ -29,24 +28,21 @@ class TestTags(TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data[0]["username"], user_data["username"])
-        return user
+        return user, user_data
 
     def create_test_tag1_by_user1(self):
         user = TestTags.create_test_user1(self)
+
         tag_data = {
             "name": 'test tag'
         }
 
-        headers = {
-            'Authorization': 'Basic ' + b64encode(
-                f"{user.username}:{'admin'}".encode('ascii')).decode('utf-8')
-        }
-
-        res = self.client.post("/tags", headers=headers,  data=json.dumps(tag_data), content_type="application/json")
+        res = self.client.post("/tags", headers=TestTags.auth_headers(self, user[1]),
+                               data=json.dumps(tag_data), content_type="application/json")
         self.assertEqual(res.status_code, 201)
         data = json.loads(res.data)
         self.assertEqual(data["name"], tag_data["name"])
-        return user
+        return user, tag_data
 
     def create_test_tag1_and_tag2_by_user1(self):
         user = TestTags.create_test_user1(self)
@@ -59,53 +55,49 @@ class TestTags(TestCase):
             }
         ]
 
-        headers = {
-            'Authorization': 'Basic ' + b64encode(
-                f"{user.username}:{'admin'}".encode('ascii')).decode('utf-8')
-        }
-
         for tag in tags_data:
-            res = self.client.post("/tags", headers=headers, data=json.dumps(tag), content_type="application/json")
+            res = self.client.post("/tags", headers=TestTags.auth_headers(self, user[1]),
+                                   data=json.dumps(tag), content_type="application/json")
             self.assertEqual(res.status_code, 201)
             data = json.loads(res.data)
             self.assertEqual(data["name"], tag["name"])
-        return user
+        return user, tags_data
 
     def auth_headers(self, user):
         return {
             'Authorization': 'Basic ' + b64encode(
-                f"{user.username}:{'admin'}".encode('ascii')).decode('utf-8')
+                f"{user['username']}:{user['password']}".encode('ascii')).decode('utf-8')
         }
 
     def test_get_tag_by_id(self):
-        user = TestTags.create_test_tag1_by_user1(self)
+        user_and_tag = TestTags.create_test_tag1_by_user1(self)
 
-        res = self.client.get("/tags/1", headers=TestTags.auth_headers(self, user))
+        res = self.client.get("/tags/1", headers=TestTags.auth_headers(self, user_and_tag[0][1]))
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
-        self.assertEqual(data["name"], "test tag")
+        self.assertEqual(data["name"], user_and_tag[1]["name"])
 
     def test_get_tag_by_id_not_found(self):
         user = TestTags.create_test_user1(self)
 
-        res = self.client.get(f"/tags/1", headers=TestTags.auth_headers(self, user))
+        res = self.client.get(f"/tags/1", headers=TestTags.auth_headers(self, user[1]))
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "Tag with id=1 not found")
 
     def test_get_tags(self):
-        user = TestTags.create_test_tag1_and_tag2_by_user1(self)
+        user_and_tags = TestTags.create_test_tag1_and_tag2_by_user1(self)
 
-        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user))
+        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user_and_tags[0][1]))
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
-        self.assertEqual(data[0]["name"], "test1 tag")
-        self.assertEqual(data[1]["name"], "test2 tag")
+        self.assertEqual(data[0]["name"], user_and_tags[1][0]["name"])
+        self.assertEqual(data[1]["name"], user_and_tags[1][1]["name"])
 
     def test_get_tags_not_found(self):
         user = TestTags.create_test_user1(self)
 
-        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user))
+        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user[1]))
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "No tags yet")
@@ -114,12 +106,12 @@ class TestTags(TestCase):
         TestTags.create_test_tag1_by_user1(self)
 
     def test_post_tag_creation_the_same_name(self):
-        user = TestTags.create_test_tag1_by_user1(self)
+        user_and_tag = TestTags.create_test_tag1_by_user1(self)
 
         tag_data = {
             "name": 'test tag'
         }
-        res = self.client.post("/tags", headers=TestTags.auth_headers(self, user),
+        res = self.client.post("/tags", headers=TestTags.auth_headers(self, user_and_tag[0][1]),
                                data=json.dumps(tag_data), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
@@ -128,13 +120,13 @@ class TestTags(TestCase):
                                         "You can only add a unique tag")
 
     def test_put_tag_by_id(self):
-        user = TestTags.create_test_tag1_by_user1(self)
+        user_and_tag = TestTags.create_test_tag1_by_user1(self)
 
         tag_data_to_change = {
             "name": 'test3 tag'
         }
 
-        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user),
+        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user_and_tag[0][1]),
                               data=json.dumps(tag_data_to_change), content_type="application/json")
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
@@ -147,20 +139,20 @@ class TestTags(TestCase):
             "name": 'test3 tag'
         }
 
-        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user),
+        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user[1]),
                               data=json.dumps(tag_data_to_change), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "Tag with id=1 not found")
 
     def test_put_tag_by_id_change_to_the_same_name(self):
-        user = TestTags.create_test_tag1_and_tag2_by_user1(self)
+        user_and_tags = TestTags.create_test_tag1_and_tag2_by_user1(self)
 
         tag_data_to_change = {
             "name": 'test2 tag'
         }
 
-        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user),
+        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user_and_tags[0][1]),
                               data=json.dumps(tag_data_to_change), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
@@ -168,9 +160,9 @@ class TestTags(TestCase):
                                         f" or a tag with such name is already exist.")
 
     def test_delete_tag_by_id(self):
-        user = TestTags.create_test_tag1_by_user1(self)
+        user_and_tag = TestTags.create_test_tag1_by_user1(self)
 
-        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user))
+        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user_and_tag[0][1]))
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data, "Tag with id=1 deleted")
@@ -178,7 +170,7 @@ class TestTags(TestCase):
     def test_delete_tag_by_id_not_found(self):
         user = TestTags.create_test_user1(self)
 
-        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user))
+        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user[1]))
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "Tag with id=1 not found")
