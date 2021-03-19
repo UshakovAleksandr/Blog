@@ -192,7 +192,6 @@ class NoteRemoveTagsResource(MethodResource):
     @use_kwargs(TagsSetRemoveNoteSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
-        print(kwargs)
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -223,7 +222,6 @@ class NoteFilterResource(MethodResource):
     @use_kwargs(NoteFilterSchema, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
-        print(kwargs)
         notes_lst = []
         for tag_name in kwargs["tags"]:
             #pdb.set_trace()
