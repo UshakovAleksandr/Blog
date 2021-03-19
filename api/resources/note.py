@@ -1,7 +1,8 @@
 from api import Resource, reqparse, db, auth, abort, g
 from api.models.note import NoteModel
 from api.models.tag import TagModel
-from api.schemas.note import NoteResponseSchema, NotePostRequestSchema, NotePutRequestSchema
+from api.schemas.note import NoteResponseSchema, NotePostRequestSchema,\
+                             NotePutRequestSchema
 from flask_apispec.views import MethodResource
 from flask_apispec import marshal_with, doc, use_kwargs
 from webargs import fields
@@ -34,9 +35,8 @@ class NoteResource(MethodResource):
             abort(404, error=f"Note with id={note_id} not found")
         if note.author != author:
             abort(403, error=f"Access denied to note with id={note_id}")
-        note.note = kwargs["note"]
-        note.private = kwargs["private"]
-        note.archive = kwargs["archive"]
+        for key in kwargs.keys():
+            setattr(note, key, kwargs[key])
         try:
             note.save()
             return note, 200
@@ -81,6 +81,42 @@ class NoteListResource(MethodResource):
         note = NoteModel(author_id=author.id, **kwargs)
         note.save()
         return note, 201
+
+
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
+class NoteToArchiveResource(MethodResource):
+
+    @auth.login_required
+    @marshal_with(NoteResponseSchema)
+    @doc(summary="Put note to archive")
+    def put(self, note_id):
+        author = g.user
+        note = NoteModel.query.get(note_id)
+        if not note:
+            abort(404, error=f"Note with id={note_id} not found")
+        if note.author != author:
+            abort(403, error=f"Access denied to note with id={note_id}")
+        note.archive = True
+        note.save()
+        return note, 200
+
+
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
+class NoteRestoreResource(MethodResource):
+
+    @auth.login_required
+    @marshal_with(NoteResponseSchema)
+    @doc(summary="Get note from archive")
+    def put(self, note_id):
+        author = g.user
+        note = NoteModel.query.get(note_id)
+        if not note:
+            abort(404, error=f"Note with id={note_id} not found")
+        if note.author != author:
+            abort(403, error=f"Access denied to note with id={note_id}")
+        note.archive = False
+        note.save()
+        return note, 200
 
 
 @doc(tags=['Notes'])

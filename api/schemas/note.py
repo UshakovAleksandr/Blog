@@ -16,9 +16,8 @@ class NotePutRequestSchema(ma.SQLAlchemySchema):
     class Meta:
         model = NoteModel
 
-    note = ma.Str()
-    private = ma.Bool()
-    archive = ma.Bool()
+    note = ma.Str(required=False)
+    private = ma.Bool(required=False)
 
 
 class NoteResponseSchema(ma.SQLAlchemySchema):
