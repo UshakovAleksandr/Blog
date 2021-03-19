@@ -22,5 +22,6 @@ class TagResponseSchema(ma.SQLAlchemySchema):
     class Meta:
         model = TagModel
 
+    id = ma.auto_field()
     name = ma.auto_field()
     author = ma.Nested(UserResponseSchema)
