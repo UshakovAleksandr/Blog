@@ -2,10 +2,10 @@ from api import Resource, reqparse, db, auth, abort, g
 from api.models.note import NoteModel
 from api.models.tag import TagModel
 from api.schemas.note import NoteResponseSchema, NotePostRequestSchema,\
-                             NotePutRequestSchema
+                             NotePutRequestSchema, NoteFilterSchema
+from api.schemas.tag import TagsSetRemoveNoteSchema
 from flask_apispec.views import MethodResource
 from flask_apispec import marshal_with, doc, use_kwargs
-from webargs import fields
 import pdb
 
 
@@ -164,7 +164,7 @@ class NoteSetTagsResource(MethodResource):
 
     @auth.login_required
     @doc(summary="Set tags to note")
-    @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
+    @use_kwargs(TagsSetRemoveNoteSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
         author = g.user
@@ -189,9 +189,10 @@ class NoteRemoveTagsResource(MethodResource):
 
     @auth.login_required
     @doc(summary="Remove tags from note")
-    @use_kwargs({"tags": fields.List(fields.Int())}, location='json')
+    @use_kwargs(TagsSetRemoveNoteSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
+        print(kwargs)
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -219,9 +220,10 @@ class NoteRemoveTagsResource(MethodResource):
 class NoteFilterResource(MethodResource):
 
     @doc(summary="Get notes. Filter by tags")
-    @use_kwargs({"tags": fields.List(fields.Str())}, location='query')
+    @use_kwargs(NoteFilterSchema, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
+        print(kwargs)
         notes_lst = []
         for tag_name in kwargs["tags"]:
             #pdb.set_trace()

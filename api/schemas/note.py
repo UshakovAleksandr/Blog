@@ -2,6 +2,7 @@ from api import ma
 from api.models.note import NoteModel
 from api.schemas.user import UserResponseSchema
 from api.schemas.tag import TagResponseSchema
+from webargs import fields
 
 
 class NotePostRequestSchema(ma.SQLAlchemySchema):
@@ -31,3 +32,10 @@ class NoteResponseSchema(ma.SQLAlchemySchema):
     archive = ma.auto_field()
     author = ma.Nested(UserResponseSchema())
     tags = ma.Nested(TagResponseSchema(many=True))
+
+
+class NoteFilterSchema(ma.SQLAlchemySchema):
+    class Meta:
+        pass
+
+    tags = fields.List(fields.Str())

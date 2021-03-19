@@ -203,9 +203,7 @@ class TestNotes(TestCase):
         user_and_note = TestNotes.create_test_user1_note1_by_user1(self)
 
         note_data_to_change = {
-            "note": 'test note 2',
-            "private": bool("False"),
-            "archive": bool("True")
+            "note": 'test note 2'
         }
 
         res = self.client.put(f"/notes/{user_and_note[0].id}",
@@ -215,16 +213,13 @@ class TestNotes(TestCase):
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data["note"], note_data_to_change["note"])
-        self.assertEqual(data["private"], note_data_to_change["private"])
-        self.assertEqual(data["archive"], note_data_to_change["archive"])
 
     def test_put_note_by_id_not_found(self):
         user_and_note = TestNotes.create_test_user1_note1_by_user1(self)
 
         note_data_to_change = {
             "note": 'test note 2',
-            "private": bool("False"),
-            "archive": bool("True")
+            "private": bool("False")
         }
 
         res = self.client.put("/notes/2", headers=TestNotes.auth_headers(self, user_and_note[2]),
@@ -239,9 +234,7 @@ class TestNotes(TestCase):
         user_and_note2 = TestNotes.create_test_user2_note2_by_user2(self)
 
         note_data_to_change = {
-            "note": 'test note 2',
-            "private": bool("False"),
-            "archive": bool("True")
+            "private": bool("False")
         }
 
         res = self.client.put(f"/notes/{user_and_note2[0].id}",
