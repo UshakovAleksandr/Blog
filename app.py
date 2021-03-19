@@ -3,7 +3,8 @@ from config import Config
 from api.resources.note import NoteResource, NoteListResource,\
                                NotesPublicResource, NoteSetTagsResource,\
                                NoteFilterResource, NoteRemoveTagsResource,\
-                               NoteToArchiveResource, NoteRestoreResource
+                               NoteToArchiveResource, NoteRestoreResource,\
+                               NoteListArchiveResource, NoteListNoArchiveResource
 from api.resources.user import UserResource, UserListResource
 from api.resources.tag import TagListResource, TagResource
 from api.resources.token import TokenResource
@@ -16,6 +17,10 @@ def main_page():
 
 
 api.add_resource(UserListResource, "/users")               # GET, POST
+
+api.add_resource(NoteListArchiveResource, "/notes/archive")  # GET
+
+api.add_resource(NoteListNoArchiveResource, "/notes/no_archive")  # GET
 
 api.add_resource(UserResource, "/users/<int:user_id>")     # GET, PUT, DELETE
 
@@ -54,6 +59,8 @@ docs.register(NoteRemoveTagsResource)
 docs.register(NoteFilterResource)
 docs.register(NoteToArchiveResource)
 docs.register(NoteRestoreResource)
+docs.register(NoteListArchiveResource)
+docs.register(NoteListNoArchiveResource)
 #docs.register(TokenResource)
 
 

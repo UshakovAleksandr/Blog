@@ -67,7 +67,7 @@ class NoteListResource(MethodResource):
     @doc(summary="Get all notes")
     def get(self):
         author = g.user
-        notes = NoteModel.get_all_notes(author)
+        notes = NoteModel.get_all_notes(author, archive="all")
         if not notes:
             abort(404, error=f"You have no notes yet")
         return notes, 200
@@ -81,6 +81,34 @@ class NoteListResource(MethodResource):
         note = NoteModel(author_id=author.id, **kwargs)
         note.save()
         return note, 201
+
+
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
+class NoteListNoArchiveResource(MethodResource):
+
+    @auth.login_required
+    @marshal_with(NoteResponseSchema(many=True))
+    @doc(summary="Get all no_archive notes")
+    def get(self):
+        author = g.user
+        notes = NoteModel.get_all_notes(author, archive="no_archive")
+        if not notes:
+            abort(404, error=f"You have no notes yet")
+        return notes, 200
+
+
+@doc(tags=['Notes'], security=[{"basicAuth": []}])
+class NoteListArchiveResource(MethodResource):
+
+    @auth.login_required
+    @marshal_with(NoteResponseSchema(many=True))
+    @doc(summary="Get all archive notes")
+    def get(self):
+        author = g.user
+        notes = NoteModel.get_all_notes(author, archive="archive")
+        if not notes:
+            abort(404, error=f"You have no notes yet")
+        return notes, 200
 
 
 @doc(tags=['Notes'], security=[{"basicAuth": []}])

@@ -21,8 +21,13 @@ class NoteModel(db.Model):
     tags = db.relationship(TagModel, secondary=tags, lazy='subquery', backref=db.backref('notes', lazy=True))
 
     @classmethod
-    def get_all_notes(cls, author):
-        return NoteModel.query.filter_by(author_id=author.id, archive=False).all()
+    def get_all_notes(cls, author, archive):
+        if archive == "all":
+            return NoteModel.query.filter_by(author_id=author.id).all()
+        if archive == "no_archive":
+            return NoteModel.query.filter_by(author_id=author.id, archive=False).all()
+        if archive == "archive":
+            return NoteModel.query.filter_by(author_id=author.id, archive=True).all()
 
     @classmethod
     def get_all_public_notes(cls):
