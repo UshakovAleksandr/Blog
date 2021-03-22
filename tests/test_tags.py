@@ -3,6 +3,7 @@ from api import db
 from app import app, Config
 from unittest import TestCase
 from api.models.user import UserModel
+from api.models.tag import TagModel
 from base64 import b64encode
 
 
@@ -28,24 +29,43 @@ class TestTags(TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data[0]["username"], user_data["username"])
-        return user, user_data
+        return user_data
 
     def create_test_tag1_by_user1(self):
-        user = TestTags.create_test_user1(self)
+        user_data1 = {
+            "username": 'admin',
+            'password': 'admin'
+        }
 
-        tag_data = {
+        user1 = UserModel(**user_data1)
+        user1.save()
+        res = self.client.get("/users")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data[0]["username"], user_data1["username"])
+
+        tag_data1 = {
             "name": 'test tag'
         }
 
-        res = self.client.post("/tags", headers=TestTags.auth_headers(self, user[1]),
-                               data=json.dumps(tag_data), content_type="application/json")
-        self.assertEqual(res.status_code, 201)
-        data = json.loads(res.data)
-        self.assertEqual(data["name"], tag_data["name"])
-        return user, tag_data
+        tag1 = TagModel(author_id=user1.id, **tag_data1)
+        tag1.save()
+
+        return tag1, user1, user_data1
 
     def create_test_tag1_and_tag2_by_user1(self):
-        user = TestTags.create_test_user1(self)
+        user_data1 = {
+            "username": 'admin',
+            'password': 'admin'
+        }
+
+        user1 = UserModel(**user_data1)
+        user1.save()
+        res = self.client.get("/users")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data[0]["username"], user_data1["username"])
+
         tags_data = [
             {
                 "name": 'test1 tag'
@@ -55,13 +75,13 @@ class TestTags(TestCase):
             }
         ]
 
-        for tag in tags_data:
-            res = self.client.post("/tags", headers=TestTags.auth_headers(self, user[1]),
-                                   data=json.dumps(tag), content_type="application/json")
-            self.assertEqual(res.status_code, 201)
-            data = json.loads(res.data)
-            self.assertEqual(data["name"], tag["name"])
-        return user, tags_data
+        ids = []
+        for tag_data in tags_data:
+            tag = TagModel(author_id=user1.id, **tag_data)
+            tag.save()
+            ids.append(tag.id)
+
+        return user1, user_data1, tags_data
 
     def auth_headers(self, user):
         return {
@@ -72,15 +92,15 @@ class TestTags(TestCase):
     def test_get_tag_by_id(self):
         user_and_tag = TestTags.create_test_tag1_by_user1(self)
 
-        res = self.client.get("/tags/1", headers=TestTags.auth_headers(self, user_and_tag[0][1]))
+        res = self.client.get(f"/tags/{user_and_tag[0].id}", headers=TestTags.auth_headers(self, user_and_tag[2]))
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
-        self.assertEqual(data["name"], user_and_tag[1]["name"])
+        self.assertEqual(data["name"], user_and_tag[0].name)
 
     def test_get_tag_by_id_not_found(self):
         user = TestTags.create_test_user1(self)
 
-        res = self.client.get(f"/tags/1", headers=TestTags.auth_headers(self, user[1]))
+        res = self.client.get(f"/tags/1", headers=TestTags.auth_headers(self, user))
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "Tag with id=1 not found")
@@ -88,16 +108,16 @@ class TestTags(TestCase):
     def test_get_tags(self):
         user_and_tags = TestTags.create_test_tag1_and_tag2_by_user1(self)
 
-        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user_and_tags[0][1]))
+        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user_and_tags[1]))
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
-        self.assertEqual(data[0]["name"], user_and_tags[1][0]["name"])
-        self.assertEqual(data[1]["name"], user_and_tags[1][1]["name"])
+        self.assertEqual(data[0]["name"], user_and_tags[2][0]["name"])
+        self.assertEqual(data[1]["name"], user_and_tags[2][1]["name"])
 
     def test_get_tags_not_found(self):
         user = TestTags.create_test_user1(self)
 
-        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user[1]))
+        res = self.client.get("/tags", headers=TestTags.auth_headers(self, user))
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "No tags yet")
@@ -111,7 +131,7 @@ class TestTags(TestCase):
         tag_data = {
             "name": 'test tag'
         }
-        res = self.client.post("/tags", headers=TestTags.auth_headers(self, user_and_tag[0][1]),
+        res = self.client.post("/tags", headers=TestTags.auth_headers(self, user_and_tag[2]),
                                data=json.dumps(tag_data), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
@@ -126,7 +146,7 @@ class TestTags(TestCase):
             "name": 'test3 tag'
         }
 
-        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user_and_tag[0][1]),
+        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user_and_tag[2]),
                               data=json.dumps(tag_data_to_change), content_type="application/json")
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
@@ -139,7 +159,7 @@ class TestTags(TestCase):
             "name": 'test3 tag'
         }
 
-        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user[1]),
+        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user),
                               data=json.dumps(tag_data_to_change), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
@@ -152,7 +172,7 @@ class TestTags(TestCase):
             "name": 'test2 tag'
         }
 
-        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user_and_tags[0][1]),
+        res = self.client.put("tags/1", headers=TestTags.auth_headers(self, user_and_tags[1]),
                               data=json.dumps(tag_data_to_change), content_type="application/json")
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
@@ -162,7 +182,7 @@ class TestTags(TestCase):
     def test_delete_tag_by_id(self):
         user_and_tag = TestTags.create_test_tag1_by_user1(self)
 
-        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user_and_tag[0][1]))
+        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user_and_tag[2]))
         self.assertEqual(res.status_code, 200)
         data = json.loads(res.data)
         self.assertEqual(data, "Tag with id=1 deleted")
@@ -170,7 +190,7 @@ class TestTags(TestCase):
     def test_delete_tag_by_id_not_found(self):
         user = TestTags.create_test_user1(self)
 
-        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user[1]))
+        res = self.client.delete("tags/1", headers=TestTags.auth_headers(self, user))
         self.assertEqual(res.status_code, 404)
         data = json.loads(res.data)
         self.assertEqual(data["error"], "Tag with id=1 not found")

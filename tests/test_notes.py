@@ -148,7 +148,7 @@ class TestNotes(TestCase):
 
     def test_get_note_by_id(self):
         user_and_note = TestNotes.create_test_user1_note1_by_user1(self)
-
+        print(user_and_note)
         res = self.client.get(f"/notes/{user_and_note[0].id}",
                               headers=TestNotes.auth_headers(self, user_and_note[2]))
         self.assertEqual(res.status_code, 200)

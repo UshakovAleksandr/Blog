@@ -28,6 +28,11 @@ class UserResource(MethodResource):
     #         }
     #     }
     # )
+
+    ########################################################################################################
+    #вариант 1
+    # в данном варианте, как я и хочу, если нет юзера, то возвращается сообщение.
+    # но нет обработки ошибок на случай ошибок с БД
     @marshal_with(UserResponseSchema)
     @doc(summary="Get user by id")
     def get(self, user_id):
@@ -35,6 +40,28 @@ class UserResource(MethodResource):
         if not user:
             abort(404, error=f"No user with id={user_id}")
         return user, 200
+
+    # А данном варианте обработка ошибок на случай ошибок с БД происходит, но
+    # тогда не возвращается сообщение про отстутвие юзера с указанием id, тк
+    # думаю, что выбрасывается ошибка на еще когда user == None и до строки if not user код не доходит
+    # и просто возвращается пустой словарь
+    # вариант 2
+    # @marshal_with(UserResponseSchema)
+    # @doc(summary="Get user by id")
+    # def get(self, user_id):
+    #     try:
+    #         user = UserModel.query.get(user_id)
+    #         if not user:
+    #             abort(404, error=f"No user with id={user_id}")
+    #     except Exception as e:
+    #         return {"error message": str(e)}, 400
+    #     return user, 200
+
+
+    # Как правильно сделать, и чтобы выбрасывались все исключения, которые я укажу и чтобы подстраховаться от ошибок БД
+    # (отвалился коннект например или там еще много чего есть, насколько я прочитал)
+    ########################################################################################################
+
 
     @use_kwargs(UserPutRequestSchema, location=('json'))
     @marshal_with(UserResponseSchema)
