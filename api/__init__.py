@@ -27,6 +27,7 @@ ma = Marshmallow(app)
 auth = HTTPBasicAuth()
 docs = FlaskApiSpec(app)
 
+client = app.test_client()
 
 # 2.1 проверка данных из запроса
 # Проверяет или username, password или token

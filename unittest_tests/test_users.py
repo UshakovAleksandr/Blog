@@ -151,4 +151,4 @@ class TestUsers(TestCase):
             db.session.remove()
             db.drop_all()
 
-# python -m unittest tests/test_users.py
+# python -m unittest tests
