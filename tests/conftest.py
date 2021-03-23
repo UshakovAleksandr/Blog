@@ -41,6 +41,18 @@ def create_test_user1(db_create):
 
 
 @pytest.fixture()
+def create_test_user2(db_create):
+    user2_data = {
+        "username": 'user2',
+        'password': 'user2'
+    }
+    user2 = UserModel(**user2_data)
+    user2.save()
+
+    return user2, user2_data
+
+
+@pytest.fixture()
 def create_test_user1_and_user2(db_create):
     users_data = [
         {
@@ -62,7 +74,7 @@ def create_test_user1_and_user2(db_create):
 
 
 @pytest.fixture()
-def create_test_tag1_by_user1(db_create, create_test_user1):
+def create_test_tag1_by_user1(create_test_user1):
     tag_data1 = {
         "name": 'test tag 1'
     }
@@ -74,7 +86,7 @@ def create_test_tag1_by_user1(db_create, create_test_user1):
 
 
 @pytest.fixture()
-def create_test_tag1_and_tag2_by_user1(db_create, create_test_user1):
+def create_test_tag1_and_tag2_by_user1(create_test_user1):
 
     tags_data = [
         {
@@ -95,7 +107,7 @@ def create_test_tag1_and_tag2_by_user1(db_create, create_test_user1):
 
 
 @pytest.fixture()
-def create_test_note1_by_user1(db_create, create_test_user1):
+def create_test_note1_by_user1(create_test_user1):
     note_data1 = {
         "note": 'test note 1'
     }
@@ -104,6 +116,37 @@ def create_test_note1_by_user1(db_create, create_test_user1):
     note1.save()
 
     return note1, create_test_user1
+
+
+@pytest.fixture()
+def create_test_note2_by_user2(create_test_user2):
+    note_data2 = {
+        "note": 'test note 2'
+    }
+
+    note2 = NoteModel(author_id=create_test_user2[0].id, **note_data2)
+    note2.save()
+
+    return note2, create_test_user2
+
+
+@pytest.fixture()
+def create_test_note1_and_note2_by_user1(create_test_user1):
+    notes_data = [
+        {
+            "note": 'test note 1'
+        },
+        {
+            "note": 'test note 2'
+        },
+    ]
+    notes_lst = []
+    for note_data in notes_data:
+        note = NoteModel(author_id=create_test_user1[0].id, **note_data)
+        note.save()
+        notes_lst.append(note)
+
+    return user_data
 
 
 @pytest.fixture()
@@ -155,6 +198,21 @@ def tag_data_to_change():
     }
     return tag_data_to_change
 
+
+@pytest.fixture()
+def note_data():
+    note_data = {
+        "note": 'test note 1'
+    }
+    return note_data
+
+
+@pytest.fixture()
+def note_data_to_change():
+    note_data_to_change = {
+        "note": 'test note 2'
+    }
+    return note_data_to_change
 
 
 
