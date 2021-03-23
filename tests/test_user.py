@@ -28,23 +28,14 @@ class TestUsers:
         data = json.loads(res.data)
         assert data["error"] == "No users yet"
 
-    def test_post_user_creation(self, client, db_create):
-        user_data = {
-            "username": 'user',
-            'password': 'user'
-        }
-
+    def test_post_user_creation(self, client, db_create, user_data):
         res = client.post("/users", data=json.dumps(user_data), content_type="application/json")
         assert res.status_code == 201
         data = json.loads(res.data)
         assert data["username"] == user_data["username"]
         assert data["id"] == 1
 
-    def test_post_user_creation_the_same_username(self, client, create_test_user1):
-        new_user_data = {
-            "username": 'user1',
-            'password': 'user1'
-        }
+    def test_post_user_creation_the_same_username(self, client, create_test_user1, new_user_data):
         res = client.post('/users', data=json.dumps(new_user_data), content_type="application/json")
         assert res.status_code == 404
         data = json.loads(res.data)
@@ -52,33 +43,21 @@ class TestUsers:
                                 "or a user with such name is already exist. " \
                                 "You can only add a unique name"
 
-    def test_put_user_by_id(self, client, create_test_user1):
-        user_data_to_change = {
-            "username": 'admin1'
-        }
-
+    def test_put_user_by_id(self, client, create_test_user1, user_data_to_change):
         res = client.put(f"/users/{create_test_user1[0].id}", data=json.dumps(user_data_to_change),
                          content_type="application/json")
         assert res.status_code == 200
         data = json.loads(res.data)
         assert data["username"] == user_data_to_change["username"]
 
-    def test_put_user_by_id_not_found(self, client, db_create):
-        user_data_to_change = {
-            "username": 'admin1'
-        }
-
+    def test_put_user_by_id_not_found(self, client, db_create, user_data_to_change):
         res = client.put(f"/users/1", data=json.dumps(user_data_to_change),
                          content_type="application/json")
         assert res.status_code == 404
         data = json.loads(res.data)
         assert data["error"] == "No user with id=1"
 
-    def test_put_user_by_id_change_to_the_same_username(self, client, create_test_user1_and_user2):
-        user_data_to_change = {
-            "username": 'user1'
-        }
-
+    def test_put_user_by_id_change_to_the_same_username(self, client, create_test_user1_and_user2, user_data_to_change):
         res = client.put(f"/users/{create_test_user1_and_user2[1].id}",
                          data=json.dumps(user_data_to_change), content_type="application/json")
         assert res.status_code == 404

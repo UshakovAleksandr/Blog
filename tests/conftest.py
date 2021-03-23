@@ -3,6 +3,7 @@ from api import db
 from app import app
 from api.models.user import UserModel
 from api.models.tag import TagModel
+from api.models.note import NoteModel
 from base64 import b64encode
 
 
@@ -63,7 +64,7 @@ def create_test_user1_and_user2(db_create):
 @pytest.fixture()
 def create_test_tag1_by_user1(db_create, create_test_user1):
     tag_data1 = {
-        "name": 'test tag'
+        "name": 'test tag 1'
     }
 
     tag1 = TagModel(author_id=create_test_user1[0].id, **tag_data1)
@@ -94,6 +95,18 @@ def create_test_tag1_and_tag2_by_user1(db_create, create_test_user1):
 
 
 @pytest.fixture()
+def create_test_note1_by_user1(db_create, create_test_user1):
+    note_data1 = {
+        "note": 'test note 1'
+    }
+
+    note1 = NoteModel(author_id=create_test_user1[0].id, **note_data1)
+    note1.save()
+
+    return note1, create_test_user1
+
+
+@pytest.fixture()
 def auth_headers(create_test_user1):
     return {
         'Authorization': 'Basic ' + b64encode(
@@ -101,6 +114,46 @@ def auth_headers(create_test_user1):
     }
 
 
+@pytest.fixture()
+def user_data():
+    user_data = {
+        "username": 'user',
+        'password': 'user'
+    }
+    return user_data
+
+
+@pytest.fixture()
+def new_user_data():
+    new_user_data = {
+        "username": 'user1',
+        'password': 'user1'
+    }
+    return new_user_data
+
+
+@pytest.fixture()
+def user_data_to_change():
+    user_data_to_change = {
+        "username": 'user1'
+    }
+    return user_data_to_change
+
+
+@pytest.fixture()
+def tag_data1():
+    tag_data1 = {
+        "name": 'test tag 1'
+    }
+    return tag_data1
+
+
+@pytest.fixture()
+def tag_data_to_change():
+    tag_data_to_change = {
+        "name": 'test tag 2'
+    }
+    return tag_data_to_change
 
 
 

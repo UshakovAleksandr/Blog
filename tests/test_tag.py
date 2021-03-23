@@ -28,21 +28,14 @@ class TestTags:
         data = json.loads(res.data)
         assert data["error"] == "No tags yet"
 
-    def test_post_tag_creation(self, client, create_test_user1, auth_headers):
-        tag_data1 = {
-            "name": 'test tag 1'
-        }
-
+    def test_post_tag_creation(self, client, create_test_user1, auth_headers, tag_data1):
         res = client.post("/tags", headers=auth_headers,
                           data=json.dumps(tag_data1), content_type="application/json")
         assert res.status_code == 201
         data = json.loads(res.data)
         assert data["name"] == tag_data1["name"]
 
-    def test_post_tag_creation_the_same_name(self, client, create_test_tag1_by_user1, auth_headers):
-        tag_data1 = {
-            "name": 'test tag'
-        }
+    def test_post_tag_creation_the_same_name(self, client, create_test_tag1_by_user1, auth_headers, tag_data1):
 
         res = client.post("/tags", headers=auth_headers,
                           data=json.dumps(tag_data1), content_type="application/json")
@@ -52,11 +45,7 @@ class TestTags:
                                 " a tag with such name is already exist." \
                                 " You can only add a unique tag"
 
-    def test_put_tag_by_id(self, client, create_test_tag1_by_user1, auth_headers):
-        tag_data_to_change = {
-            "name": 'test tag 2'
-        }
-
+    def test_put_tag_by_id(self, client, create_test_tag1_by_user1, auth_headers, tag_data_to_change):
         res = client.put(f"tags/{create_test_tag1_by_user1[1][0].id}",
                          headers=auth_headers,
                          data=json.dumps(tag_data_to_change), content_type="application/json")
@@ -64,11 +53,7 @@ class TestTags:
         data = json.loads(res.data)
         assert data["name"] == tag_data_to_change["name"]
 
-    def test_put_tag_by_id_not_found(self, client, create_test_tag1_by_user1, auth_headers):
-        tag_data_to_change = {
-            "name": 'test tag 3'
-        }
-
+    def test_put_tag_by_id_not_found(self, client, create_test_tag1_by_user1, auth_headers, tag_data_to_change):
         res = client.put("tags/2", headers=auth_headers,
                          data=json.dumps(tag_data_to_change), content_type="application/json")
         assert res.status_code == 404
@@ -76,11 +61,7 @@ class TestTags:
         assert data["error"] == "Tag with id=2 not found"
 
     def test_put_tag_by_id_change_to_the_same_name(self, client, create_test_tag1_and_tag2_by_user1,
-                                                   auth_headers):
-        tag_data_to_change = {
-            "name": 'test tag 2'
-        }
-
+                                                   auth_headers, tag_data_to_change):
         res = client.put("tags/1", headers=auth_headers,
                          data=json.dumps(tag_data_to_change), content_type="application/json")
         assert res.status_code == 404
@@ -100,9 +81,3 @@ class TestTags:
         assert res.status_code == 404
         data = json.loads(res.data)
         assert data["error"] == "Tag with id=1 not found"
-
-
-
-
-
-
