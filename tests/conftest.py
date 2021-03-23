@@ -4,6 +4,18 @@ from app import app
 from api.models.user import UserModel
 
 
+# @pytest.fixture()
+# def app():
+#     _app = app
+#     yield _app
+
+
+@pytest.fixture()
+def client():
+    client = app.test_client()
+    yield client
+
+
 @pytest.fixture()
 def db_create():
     app.config.update({

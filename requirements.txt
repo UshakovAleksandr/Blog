@@ -7,6 +7,7 @@ Flask-SQLAlchemy==2.4.4
 marshmallow-sqlalchemy==0.24.2
 flask-marshmallow==0.14.0
 Flask-HTTPAuth==4.2.0
+pytest==6.2.2
 ipython
 gunicorn
 psycopg2-binary
