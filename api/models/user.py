@@ -16,27 +16,48 @@ class UserModel(db.Model):
         self.hash_password(password)
 
     def hash_password(self, password):
+        """
+        Хэширует пароль пользователья при регистрации
+        :param password: пароль пользователя из конструктора
+        """
         self.password_hash = pwd_context.encrypt(password)
 
     def verify_password(self, password):
+        """
+        Проверяет корректность пароля при аутентификаци
+        :param password: пароль пользователя
+        :return: bool
+        """
         return pwd_context.verify(password, self.password_hash)
 
     # 1.2 создает токен, вызывается в русурсе "токен"
     def generate_auth_token(self, expiration=600):
+        """
+        Создает токен
+        """
         s = Serializer(Config.SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.id})
 
     def save(self):
+        """
+        Сохраняет пользователя в БД
+        """
         db.session.add(self)
         db.session.commit()
 
     def delete(self):
+        """
+        Удаляет пользователя из БД
+        """
         db.session.delete(self)
         db.session.commit()
 
     # 2.2 проверяет валидность пришедшего токена. Вызывается из init
     @staticmethod
     def verify_auth_token(token):
+        """
+        Проверяет валидность пришедшего токена
+        """
         s = Serializer(Config.SECRET_KEY)
         try:
             data = s.loads(token)
@@ -46,10 +67,3 @@ class UserModel(db.Model):
             return None  # invalid token
         user = UserModel.query.get(data['id'])
         return user
-
-
-    # def to_dict(self):
-    #     d = {}
-    #     for column in self.__table__.columns:
-    #         d[column.name] = str(getattr(self, column.name))
-    #     return d

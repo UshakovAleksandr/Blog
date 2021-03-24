@@ -13,6 +13,9 @@ from flask import render_template
 
 @app.route("/", methods=["GET"])
 def main_page():
+    """
+    Главная страница, ссылка на swagger
+    """
     return render_template("index.html")
 
 

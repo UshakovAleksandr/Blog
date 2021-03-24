@@ -16,6 +16,12 @@ class NoteResource(MethodResource):
     @marshal_with(NoteResponseSchema)
     @doc(summary="Get note by id")
     def get(self, note_id):
+        """
+        Возвращает заметку пользователя.
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :return: замтку
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -29,6 +35,13 @@ class NoteResource(MethodResource):
     @marshal_with(NoteResponseSchema)
     @doc(summary="Change note by id")
     def put(self, note_id, **kwargs):
+        """
+        Меняет заметку пользователя.
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :param kwargs: параметры для изменения заметки
+        :return: заметку
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -46,6 +59,12 @@ class NoteResource(MethodResource):
     @auth.login_required
     @doc(summary="Delete note by id")
     def delete(self, note_id):
+        """
+        Удаляет заметку пользователя.
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :return: сообщение об успешном удалении заметки
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -66,6 +85,12 @@ class NoteListResource(MethodResource):
     @marshal_with(NoteResponseSchema(many=True))
     @doc(summary="Get all notes")
     def get(self):
+        """
+        Возвращает все заметки пользователя.
+        Фильтры поиска не применяются.
+        Требуется аутентификация.
+        :return: все заметки
+        """
         author = g.user
         notes = NoteModel.get_all_notes(author, archive="all")
         if not notes:
@@ -77,6 +102,12 @@ class NoteListResource(MethodResource):
     @marshal_with(NoteResponseSchema)
     @doc(summary="Create note")
     def post(self, **kwargs):
+        """
+        Создает заметку пользователя.
+        Требуется аутентификация.
+        :param kwargs: параметры для создания заметки
+        :return: заметку
+        """
         author = g.user
         note = NoteModel(author_id=author.id, **kwargs)
         note.save()
@@ -90,6 +121,12 @@ class NoteListNoArchiveResource(MethodResource):
     @marshal_with(NoteResponseSchema(many=True))
     @doc(summary="Get all no_archive notes")
     def get(self):
+        """
+        Возвращает все не архивные заметки пользователя.
+        Используется фильтр - "не архивные".
+        Требуется аутентификация.
+        :return: заметки
+        """
         author = g.user
         notes = NoteModel.get_all_notes(author, archive="no_archive")
         if not notes:
@@ -104,6 +141,12 @@ class NoteListArchiveResource(MethodResource):
     @marshal_with(NoteResponseSchema(many=True))
     @doc(summary="Get all archive notes")
     def get(self):
+        """
+        Возвращает все архивные заметки пользователя.
+        Используется фильтр - "архивные".
+        Требуется аутентификация.
+        :return:
+        """
         author = g.user
         notes = NoteModel.get_all_notes(author, archive="archive")
         if not notes:
@@ -118,6 +161,12 @@ class NoteToArchiveResource(MethodResource):
     @marshal_with(NoteResponseSchema)
     @doc(summary="Put note to archive")
     def put(self, note_id):
+        """
+        Изменяет статус заметки на "архивная".
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :return: заметку
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -136,6 +185,12 @@ class NoteRestoreResource(MethodResource):
     @marshal_with(NoteResponseSchema)
     @doc(summary="Get note from archive")
     def put(self, note_id):
+        """
+        Изменяет статус заметки на "не архивная".
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :return: заметку
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -153,6 +208,10 @@ class NotesPublicResource(MethodResource):
     @marshal_with(NoteResponseSchema(many=True))
     @doc(summary="Get all public notes")
     def get(self):
+        """
+        Возвращает все публичные заметки пользователя
+        :return: заметки
+        """
         notes = NoteModel.get_all_public_notes()
         if not notes:
             abort(404, error=f"Public notes not found")
@@ -167,6 +226,13 @@ class NoteSetTagsResource(MethodResource):
     @use_kwargs(TagsSetRemoveNoteSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
+        """
+        Присваивает теги к заметке.
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :param kwargs: id тегов в формате списка
+        :return: заметку
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -192,6 +258,13 @@ class NoteRemoveTagsResource(MethodResource):
     @use_kwargs(TagsSetRemoveNoteSchema, location='json')
     @marshal_with(NoteResponseSchema)
     def put(self, note_id, **kwargs):
+        """
+        Отвязывает теги от заметки.
+        Требуется аутентификация.
+        :param note_id: id заметки
+        :param kwargs: id тегов в формате списка
+        :return: заметку
+        """
         author = g.user
         note = NoteModel.query.get(note_id)
         if not note:
@@ -222,6 +295,11 @@ class NoteFilterResource(MethodResource):
     @use_kwargs(NoteFilterSchema, location='query')
     @marshal_with(NoteResponseSchema(many=True))
     def get(self, **kwargs):
+        """
+        Возвращает заметки, фильтруя по привязанным тегам.
+        :param kwargs: теги в формате списка
+        :return: заметки
+        """
         notes_lst = []
         for tag_name in kwargs["tags"]:
             #pdb.set_trace()

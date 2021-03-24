@@ -9,9 +9,15 @@ class TagModel(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey(UserModel.id))
 
     def save(self):
+        """
+        Сохраняет тэг в БД
+        """
         db.session.add(self)
         db.session.commit()
 
     def delete(self):
+        """
+        Удаляет тэг из БД
+        """
         db.session.delete(self)
         db.session.commit()

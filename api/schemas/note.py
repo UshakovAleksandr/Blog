@@ -8,7 +8,9 @@ from webargs import fields
 class NotePostRequestSchema(ma.SQLAlchemySchema):
     class Meta:
         model = NoteModel
-
+    """
+    Валидационная схема входных данных post-запроса 
+    """
     note = ma.Str()
     private = ma.Bool(required=False)
 
@@ -16,7 +18,9 @@ class NotePostRequestSchema(ma.SQLAlchemySchema):
 class NotePutRequestSchema(ma.SQLAlchemySchema):
     class Meta:
         model = NoteModel
-
+    """
+    Валидационная схема входных данных put-запроса 
+    """
     note = ma.Str(required=False)
     private = ma.Bool(required=False)
 
@@ -24,7 +28,9 @@ class NotePutRequestSchema(ma.SQLAlchemySchema):
 class NoteResponseSchema(ma.SQLAlchemySchema):
     class Meta:
         model = NoteModel
-
+    """
+    Валидационная схема выходных данных 
+    """
     id = ma.auto_field()
     note = ma.auto_field()
     private = ma.auto_field()
@@ -37,5 +43,7 @@ class NoteResponseSchema(ma.SQLAlchemySchema):
 class NoteFilterSchema(ma.SQLAlchemySchema):
     class Meta:
         pass
-
+    """
+    Валидационная схема входных данных для фильтрации 
+    """
     tags = fields.List(fields.Str())

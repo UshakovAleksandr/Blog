@@ -12,6 +12,9 @@ security_definitions = {
 
 
 class Config:
+    """
+    Конфигурации БД, swagger
+    """
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(base_dir, 'blog.db')
     TEST_DATABASE_URI = 'sqlite:///' + os.path.join(base_dir, 'test.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False

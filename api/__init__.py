@@ -8,7 +8,9 @@ from flask_marshmallow import Marshmallow
 from flask_httpauth import HTTPBasicAuth
 from flask_apispec.extension import FlaskApiSpec
 
-
+"""
+Основной файл проекта
+"""
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -28,12 +30,15 @@ auth = HTTPBasicAuth()
 docs = FlaskApiSpec(app)
 
 
-# 2.1 проверка данных из запроса
-# Проверяет или username, password или token
 @auth.verify_password
 def verify_password(username_or_token, password):
+    """
+    Валидация пароля, при успешной валидации помещает объект пользователя в глобальное хранилище flask
+    :param username_or_token: токен
+    :param password: пароль
+    :return: bool
+    """
     from api.models.user import UserModel
-    #print("username_or_token = ", username_or_token)
     user = UserModel.verify_auth_token(username_or_token)
     if not user:
         user = UserModel.query.filter_by(username=username_or_token).first()

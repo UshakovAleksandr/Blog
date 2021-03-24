@@ -12,6 +12,12 @@ class TagResource(MethodResource):
     @doc(summary="Get tag by id")
     @marshal_with(TagResponseSchema)
     def get(self, tag_id):
+        """
+        Возвращает тег по id.
+        Требуется аутентификация.
+        :param tag_id: id тега
+        :return: тег
+        """
         author = g.user
         tag = TagModel.query.get(tag_id)
         if not tag:
@@ -25,6 +31,13 @@ class TagResource(MethodResource):
     @use_kwargs(TagRequestSchema, location='json')
     @marshal_with(TagResponseSchema)
     def put(self, tag_id, **kwargs):
+        """
+        Изменяет тег по id.
+        Требуется аутентификация.
+        :param tag_id: id тега
+        :param kwargs: параметры для изменения тега
+        :return: тег
+        """
         author = g.user
         tag = TagModel.query.get(tag_id)
         if not tag:
@@ -42,6 +55,12 @@ class TagResource(MethodResource):
     @auth.login_required
     @doc(summary="Delete tag by id")
     def delete(self, tag_id):
+        """
+        Удаляет тег по id.
+        Требуется аутентификация.
+        :param tag_id: id тега
+        :return: тег
+        """
         author = g.user
         tag = TagModel.query.get(tag_id)
         if not tag:
@@ -62,6 +81,11 @@ class TagListResource(MethodResource):
     @doc(summary="Get all tags")
     @marshal_with(TagResponseSchema(many=True))
     def get(self):
+        """
+        Возвращает все теги пользователя
+        Требуется аутентификация.
+        :return: теги
+        """
         author = g.user
         tags = TagModel.query.filter_by(author_id=author.id).all()
         if not tags:
@@ -73,6 +97,12 @@ class TagListResource(MethodResource):
     @use_kwargs(TagRequestSchema, location='json')
     @marshal_with(TagResponseSchema)
     def post(self, **kwargs):
+        """
+        Создает тег пользователя.
+        Требуется аутентификация.
+        :param kwargs: параметры для создания тега
+        :return: тег
+        """
         author = g.user
         tag = TagModel(author_id=author.id, **kwargs)
         try:

@@ -22,6 +22,12 @@ class NoteModel(db.Model):
 
     @classmethod
     def get_all_notes(cls, author, archive):
+        """
+        Фильтрует заметки по признаку "архива"
+        :param author: автор заметки
+        :param archive: флаг "архива"
+        :return: заметки
+        """
         if archive == "all":
             return NoteModel.query.filter_by(author_id=author.id).all()
         if archive == "no_archive":
@@ -31,26 +37,31 @@ class NoteModel(db.Model):
 
     @classmethod
     def get_all_public_notes(cls):
+        """
+        Фильтрует заметки по признаку "публичности"
+        :return: публичные заметки
+        """
         return NoteModel.query.filter_by(private=False, archive=False).all()
 
     @classmethod
     def get_notes_filtered_by_tags(cls, tag_name):
+        """
+        Фильтрует заметки по признакам
+        :param tag_name: имя тэга
+        :return: заметки
+        """
         return NoteModel.query.filter(NoteModel.tags.any(name=tag_name), NoteModel.archive == False).all()
 
     def save(self):
+        """
+        Сохраняет заметку в БД
+        """
         db.session.add(self)
         db.session.commit()
 
     def delete(self):
+        """
+        Удаляет заметку из БД
+        """
         db.session.delete(self)
         db.session.commit()
-
-    # def __init__(self, user, note):
-    #     self.user_id = user.id
-    #     self.note = note
-
-    # def to_dict(self):
-    #     d = {}
-    #     for column in self.__table__.columns:
-    #         d[column.name] = str(getattr(self, column.name))
-    #     return d
