@@ -146,7 +146,7 @@ def create_test_note1_and_note2_by_user1(create_test_user1):
         note.save()
         notes_lst.append(note)
 
-    return user_data
+    return notes_lst
 
 
 @pytest.fixture()
@@ -291,3 +291,11 @@ def tags_set_data_wrong():
         ]
     }
     return tags_set_data_wrong
+
+
+@pytest.fixture()
+def note_private_data():
+    note_private_data = {
+        "private": False
+    }
+    return note_private_data

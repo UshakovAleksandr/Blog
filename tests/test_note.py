@@ -161,3 +161,89 @@ class TestNotes:
         assert res.status_code == 404
         data = json.loads(res.data)
         assert data["error"] == "Note with tag_name=test tag 3 not found"
+
+    def test_get_all_public_notes(self, client, create_test_note1_and_note2_by_user1, note_private_data,
+                                  auth_headers):
+        client.put(f"/notes/{create_test_note1_and_note2_by_user1[0].id}", headers=auth_headers,
+                   data=json.dumps(note_private_data), content_type="application/json")
+        client.put("/notes/2", headers=auth_headers,
+                   data=json.dumps(note_private_data), content_type="application/json")
+        res = client.get("/notes/public")
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data[0]["note"] == create_test_note1_and_note2_by_user1[0].note
+        assert data[1]["note"] == "test note 2"
+
+    def test_get_all_public_notes_not_found(self, client, create_test_note1_and_note2_by_user1):
+        res = client.get("/notes/public")
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data["error"] == "Public notes not found"
+
+    def test_get_all_no_archive_notes_notes(self, client, create_test_note1_and_note2_by_user1, auth_headers):
+        res = client.get(f"/notes/no_archive", headers=auth_headers)
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data[0]["note"] == create_test_note1_and_note2_by_user1[0].note
+        assert data[1]["note"] == create_test_note1_and_note2_by_user1[1].note
+
+    def test_get_all_no_archive_notes_notes_not_found(self, client, create_test_user1, auth_headers):
+        res = client.get(f"/notes/no_archive", headers=auth_headers)
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data["error"] == "You have no notes yet"
+
+    def test_get_all_archive_notes(self, client, create_test_note1_and_note2_by_user1, auth_headers):
+        client.put(f"/notes/{create_test_note1_and_note2_by_user1[0].id}/to_archive", headers=auth_headers)
+        client.put(f"/notes/2/to_archive", headers=auth_headers)
+        res = client.get("/notes/archive", headers=auth_headers)
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data[0]["note"] == create_test_note1_and_note2_by_user1[0].note
+        assert data[1]["note"] == "test note 2"
+
+    def test_get_all_archive_notes_notes_not_found(self, client, create_test_user1, auth_headers):
+        res = client.get("/notes/archive", headers=auth_headers)
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data["error"] == "You have no notes yet"
+
+    def test_put_set_note_to_archive(self, client, create_test_note1_by_user1, auth_headers):
+        res = client.put(f"/notes/{create_test_note1_by_user1[0].id}/to_archive", headers=auth_headers)
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data["note"] == create_test_note1_by_user1[0].note
+
+    def test_put_set_note_to_archive_note_not_found(self, client, auth_headers):
+        res = client.put(f"/notes/1/to_archive", headers=auth_headers)
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data["error"] == "Note with id=1 not found"
+
+    def test_put_set_note_to_archive_note_doesnt_belong_to_user(self, client, create_test_note1_by_user1,
+                                                                create_test_note2_by_user2, auth_headers):
+        res = client.put(f"/notes/{create_test_note2_by_user2[0].id}/to_archive", headers=auth_headers)
+        assert res.status_code == 403
+        data = json.loads(res.data)
+        assert data["error"] == f"Access denied to note with id={create_test_note2_by_user2[0].id}"
+
+    def test_put_restore_note_from_archive(self, client, create_test_note1_by_user1, auth_headers):
+        client.put(f"/notes/{create_test_note1_by_user1[0].id}/to_archive", headers=auth_headers)
+        res = client.put(f"/notes/{create_test_note1_by_user1[0].id}/restore", headers=auth_headers)
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data["note"] == create_test_note1_by_user1[0].note
+
+    def test_put_restore_note_from_archive_note_not_found(self, client, create_test_note1_by_user1, auth_headers):
+        res = client.put("/notes/2/restore", headers=auth_headers)
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data["error"] == "Note with id=2 not found"
+
+    def test_put_restore_note_from_archive_note_doesnt_belong_to_user(self, client, create_test_note1_by_user1,
+                                                                      create_test_note2_by_user2, auth_headers):
+        client.put(f"/notes/{create_test_note1_by_user1[0].id}/to_archive", headers=auth_headers)
+        res = client.put(f"/notes/2/restore", headers=auth_headers)
+        assert res.status_code == 403
+        data = json.loads(res.data)
+        assert data["error"] == "Access denied to note with id=2"
