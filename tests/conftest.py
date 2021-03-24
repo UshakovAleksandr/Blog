@@ -150,6 +150,56 @@ def create_test_note1_and_note2_by_user1(create_test_user1):
 
 
 @pytest.fixture()
+def create_test_user1_note1_tag1_tag2(create_test_user1):
+    note_data1 = {
+        "note": 'test note 1'
+    }
+    note1 = NoteModel(author_id=create_test_user1[0].id, **note_data1)
+    note1.save()
+
+    tags_data = [
+        {
+            "name": 'test tag 1'
+        },
+        {
+            "name": 'test tag 2'
+        }
+    ]
+    tags_lst = []
+    for tag_data in tags_data:
+        tag = TagModel(author_id=create_test_user1[0].id, **tag_data)
+        tag.save()
+        tags_lst.append(tag)
+
+    return note1, tags_lst, create_test_user1
+
+
+@pytest.fixture()
+def create_test_user2_note2_tag3_tag4(create_test_user2):
+    note_data2 = {
+        "note": 'test note 2'
+    }
+    note2 = NoteModel(author_id=create_test_user2[0].id, **note_data2)
+    note2.save()
+
+    tags_data = [
+        {
+            "name": 'test tag 3'
+        },
+        {
+            "name": 'test tag 4'
+        }
+    ]
+    tags_lst = []
+    for tag_data in tags_data:
+        tag = TagModel(author_id=create_test_user2[0].id, **tag_data)
+        tag.save()
+        tags_lst.append(tag)
+
+    return note2, tags_lst, create_test_user2
+
+
+@pytest.fixture()
 def auth_headers(create_test_user1):
     return {
         'Authorization': 'Basic ' + b64encode(
@@ -215,6 +265,29 @@ def note_data_to_change():
     return note_data_to_change
 
 
+@pytest.fixture()
+def note_data_to_change_bool():
+    note_data_to_change_bool = {
+        "private": bool("False")
+    }
+    return note_data_to_change_bool
 
 
+@pytest.fixture()
+def tags_set_data():
+    tags_set_data = {
+        "tags": [
+            1, 2
+        ]
+    }
+    return tags_set_data
 
+
+@pytest.fixture()
+def tags_set_data_wrong():
+    tags_set_data_wrong = {
+        "tags": [
+            1, 3
+        ]
+    }
+    return tags_set_data_wrong

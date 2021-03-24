@@ -232,4 +232,3 @@ class NoteFilterResource(MethodResource):
                 if note not in notes_lst:
                     notes_lst.append(note)
         return notes_lst, 200
-
